@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+
+  <Commands package="Package">
+    <Groups>
+      <Group guid="CmdSet" id="VSToolsMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+
+      <Group guid="CmdSet" id="ProjectContextMenuGroup" priority="0x0100">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
+      </Group>
+
+      <Group guid="CmdSet" id="FileContextMenuGroup" priority="0x0100">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
+      </Group>
+    </Groups>
+
+    <Menus>
+      <Menu type="Menu" guid="CmdSet" id="ToolsMenuId" priority="1">
+        <Parent guid="CmdSet" id="VSToolsMenuGroup" />
+
+        <Strings>
+          <MenuText>Powerbar</MenuText>
+          <ButtonText>Powerbar</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Buttons>
+      <Button guid="CmdSet" id="InvokeCommandId">
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Open Powerbar</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="CmdSet" id="InvokeCommandId" priority="1">
+      <Parent guid="CmdSet" id="ProjectContextMenuGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="InvokeCommandId" priority="1">
+      <Parent guid="CmdSet" id="FileContextMenuGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <Symbols>
+    <GuidSymbol name="Package" value="{3c078121-2119-42af-9055-50abb4af5afe}" />
+
+    <GuidSymbol name="CmdSet" value="{069838a4-a734-4fed-bc02-ef643489a6e7}">
+      <!-- Groups -->
+      <IDSymbol name="VSToolsMenuGroup" value="0x1020" />
+      <IDSymbol name="FileContextMenuGroup" value="0x101" />
+      <IDSymbol name="ProjectContextMenuGroup" value="0x102" />
+
+      <IDSymbol name="ToolsMenuId" value="0x201" />
+
+      <!-- Commands -->
+      <IDSymbol name="InvokeCommandId" value="0x300" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
