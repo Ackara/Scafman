@@ -15,7 +15,7 @@
     <ProjectGuid>{FEB31E1B-30B9-40B2-BCAC-EE90024B6152}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Acklann.Powerbar.VSIX</RootNamespace>
+    <RootNamespace>Acklann.Powerbar</RootNamespace>
     <AssemblyName>Powerbar.VSIX</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
