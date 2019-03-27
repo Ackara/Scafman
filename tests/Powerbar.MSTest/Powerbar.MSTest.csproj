@@ -22,8 +22,4 @@
     <ProjectReference Include="..\..\source\Powerbar\Powerbar.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Tests\" />
-  </ItemGroup>
-
 </Project>
