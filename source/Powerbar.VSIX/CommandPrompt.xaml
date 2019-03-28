@@ -7,9 +7,9 @@
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Acklann.Powerbar"
         BorderThickness="0"
-        FontSize="16"
-        Height="100"
-        MinHeight="100"
+        FontSize="20"
+        Height="125"
+        MinHeight="125"
         MinWidth="250"
         MaxWidth="800"
         WindowStartupLocation="Manual"
@@ -35,7 +35,7 @@
             </Style>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid Margin="6, 6">
+    <Grid Margin="12, 12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />

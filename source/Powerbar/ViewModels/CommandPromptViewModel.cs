@@ -1,10 +1,18 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
 
 namespace Acklann.Powerbar.ViewModels
 {
     public class CommandPromptViewModel : INotifyPropertyChanged
     {
+        public CommandPromptViewModel(int capacity = 25)
+        {
+            _history = new string[capacity];
+        }
+
+        internal const string DEFAULT_TEXT = "";
+
         public string UserInput
         {
             get => _userInput;
@@ -55,12 +63,40 @@ namespace Acklann.Powerbar.ViewModels
 
         public string SelectPrevious()
         {
-            return null;
+            if (_selectionIndex == -1) _selectionIndex = _currentIndex;
+            else if ((_selectionIndex - 1) < 0)
+            {
+                _selectionIndex = _history.Length - 1;
+                if (_selectionIndex == _currentIndex) _selectionIndex = 0;
+            }
+            else if (_selectionIndex - 1 != _currentIndex) _selectionIndex--;
+
+            UserInput = _history[_selectionIndex];
+            return _userInput;
         }
 
         public string SelectNext()
         {
-            return null;
+            if (_selectionIndex == -1) _selectionIndex = _currentIndex;
+            else if (_selectionIndex >= _history.Length - 1) _selectionIndex = 0;
+            else if (_selectionIndex != _currentIndex) _selectionIndex++;
+
+            UserInput = _history[_selectionIndex];
+            return _userInput;
+        }
+
+        public void Commit(string command = null)
+        {
+            if (command == null) command = _userInput;
+            UserInput = DEFAULT_TEXT;
+            _selectionIndex = -1;
+
+            if (string.IsNullOrEmpty(command)) return;
+            if (_currentIndex < 0 || command != _history[_currentIndex])
+            {
+                if ((_currentIndex + 1) >= _history.Length) _currentIndex = -1;
+                _history[++_currentIndex] = command;
+            }
         }
 
         protected void RaisePropertyChangedEvent(string propertyName)
@@ -70,8 +106,11 @@ namespace Acklann.Powerbar.ViewModels
 
         #region Private Members
 
-        private int _top = 40, _left = 40;
-        private string _userInput = "", _location = "";
+        private readonly string[] _history;
+        private readonly string _stateFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Powerbar), "state.xml");
+
+        private string _userInput = DEFAULT_TEXT, _location = string.Empty;
+        private int _top = 100, _left = 100, _currentIndex = -1, _selectionIndex = -1;
 
         #endregion Private Members
     }

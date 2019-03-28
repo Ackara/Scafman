@@ -24,6 +24,7 @@ namespace Acklann.Powerbar
         {
             Inputbox.Focus();
             Inputbox.CaretIndex = 0;
+            Inputbox.Select(0, _viewModel.UserInput.Length);
             System.Diagnostics.Debug.WriteLine("Prompt Opened");
         }
 
@@ -48,6 +49,7 @@ namespace Acklann.Powerbar
 
                 case Key.Enter:
                     DialogResult = true;
+                    _viewModel.Commit();
                     Close();
                     break;
             }
