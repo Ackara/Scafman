@@ -1,0 +1,76 @@
+﻿<Window x:Class="Acklann.Powerbar.CommandPrompt"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:vm="clr-namespace:Acklann.Powerbar.ViewModels;assembly=Powerbar"
+        xmlns:s="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:Acklann.Powerbar"
+        BorderThickness="0"
+        FontSize="16"
+        Height="100"
+        MinHeight="100"
+        MinWidth="250"
+        MaxWidth="800"
+        WindowStartupLocation="Manual"
+        SizeToContent="Width"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Loaded="OnLoaded"
+        Top="{Binding Top, Mode=TwoWay}"
+        Left="{Binding Left, Mode=TwoWay}"
+        mc:Ignorable="d">
+    <d:Window.DataContext>
+        <vm:CommandPromptViewModel UserInput="| New-Template @(mvc)"
+                                   Location="C:\Users\David\Projects\Powerbar\source\Powerbar.VSIX" />
+    </d:Window.DataContext>
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style TargetType="TextBlock">
+                <Setter Property="VerticalAlignment"
+                        Value="Center" />
+
+                <Setter Property="HorizontalAlignment"
+                        Value="Stretch" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="6, 6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock VerticalAlignment="Center"
+                   Grid.Column="0"
+                   Grid.Row="0">
+            <Run Text="PS "
+                 FontWeight="Light" />
+            <Run Text="{Binding CurrentFolder, Mode=OneWay}"
+                 FontWeight="SemiBold" />
+        </TextBlock>
+
+        <TextBox x:Name="Inputbox"
+                 Text="{Binding UserInput, Mode=TwoWay}"
+                 PreviewKeyDown="OnPreviewKeyDown"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Center"
+                 FontFamily="Consolas"
+                 Margin="4, 0, 0, 0"
+                 Grid.Column="1"
+                 Grid.Row="0" />
+
+        <TextBlock TextTrimming="CharacterEllipsis"
+                   Margin="0, 6, 0, 0"
+                   Grid.ColumnSpan="2"
+                   Grid.Row="1">
+            <Run Text="Location: " />
+            <Run Text="{Binding Location}" />
+        </TextBlock>
+    </Grid>
+</Window>

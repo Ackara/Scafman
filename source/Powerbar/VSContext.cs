@@ -1,21 +1,14 @@
 ﻿namespace Acklann.Powerbar
 {
-    public struct Context
+    public struct VSContext
     {
-        public Context(string tool) : this(null, null, null, null, tool)
+        public VSContext(string solution, string project, string item, string ns)
         {
-        }
-
-        public Context(string solution, string project, string item, string ns, string tool = "powershell")
-        {
-            Tool = tool;
             SolutionFilePath = solution;
             ProjectFilePath = project;
             ProjectItemPath = item;
-            RootNamespace = ns;
+            RootNamespace = ns ?? "MyNamespace";
         }
-
-        public readonly string Tool;
 
         public readonly string SolutionFilePath;
 
@@ -33,18 +26,20 @@
         /// </returns>
         public override string ToString()
         {
+            string escape(string value) => $"''{value}''";
+
             var properties = string.Join(",", new string[] {
-                $"\"{nameof(SolutionFilePath)}\": \"{SolutionFilePath}\"",
-                $"\"{nameof(ProjectFilePath)}\": \"{ProjectFilePath}\"",
-                $"\"{nameof(ProjectItemPath)}\": \"{ProjectItemPath}\"",
-                $"\"{nameof(RootNamespace)}\": \"{RootNamespace}\"",
+                $"{escape(nameof(SolutionFilePath))}: {escape(SolutionFilePath)}",
+                $"{escape(nameof(ProjectFilePath))}: {escape(ProjectFilePath)}",
+                $"{escape(nameof(ProjectItemPath))}: {escape(ProjectItemPath)}",
+                $"{escape(nameof(RootNamespace))}: {escape(RootNamespace)}",
             });
-            return $"{{ {properties} }}";
+            return $"'{{ {properties} }}'";
         }
 
         #region Operators
 
-        public static implicit operator string(Context obj)
+        public static implicit operator string(VSContext obj)
         {
             return obj.ToString();
         }

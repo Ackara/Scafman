@@ -17,7 +17,9 @@ namespace Acklann.Powerbar
 			public const int FileContextMenuGroup = 0x101;
 			public const int ProjectContextMenuGroup = 0x102;
 			public const int ToolsMenuId = 0x201;
-			public const int InvokeCommandId = 0x300;
+			public const int CurrentLevelCommandId = 0x300;
+			public const int ProjectLevelCommandId = 0x301;
+			public const int SolutionLevelCommandId = 0x302;
 		}
 	}
 }

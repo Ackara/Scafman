@@ -30,7 +30,7 @@
     </Menus>
 
     <Buttons>
-      <Button guid="CmdSet" id="InvokeCommandId">
+      <Button guid="CmdSet" id="CurrentLevelCommandId">
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Open Powerbar</ButtonText>
@@ -40,11 +40,11 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="CmdSet" id="InvokeCommandId" priority="1">
+    <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
       <Parent guid="CmdSet" id="ProjectContextMenuGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="InvokeCommandId" priority="1">
+    <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
       <Parent guid="CmdSet" id="FileContextMenuGroup" />
     </CommandPlacement>
   </CommandPlacements>
@@ -61,7 +61,9 @@
       <IDSymbol name="ToolsMenuId" value="0x201" />
 
       <!-- Commands -->
-      <IDSymbol name="InvokeCommandId" value="0x300" />
+      <IDSymbol name="CurrentLevelCommandId" value="0x300" />
+      <IDSymbol name="ProjectLevelCommandId" value="0x301" />
+      <IDSymbol name="SolutionLevelCommandId" value="0x302" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

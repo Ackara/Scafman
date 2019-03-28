@@ -1,35 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Acklann.Powerbar
 {
     public static class Shell
     {
-        public static void Invoke(string command)
-        {
-        }
-
-        public static void Invoke(string command, Context context, Action<string> callback)
+        public static void Invoke(string command, VSContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
             void dataHandler(object s, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
-
-            var args = new ProcessStartInfo("powershell")
-            {
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                Arguments = $"-ExecutionPolicy Bypass -NonInteractive -Command "
-            };
-
-            if (context == null)
-                args.Arguments += command;
-            else
-                args.Arguments += $" {command}";
-
-            using (var exe = new Process { StartInfo = args })
+            using (var exe = new Process { StartInfo = CreateArgs(command, context) })
             {
                 exe.ErrorDataReceived += dataHandler;
                 exe.OutputDataReceived += dataHandler;
@@ -42,26 +25,50 @@ namespace Acklann.Powerbar
             }
         }
 
-        internal static ProcessStartInfo SetArguments(Context context)
+        internal static ProcessStartInfo CreateArgs(string command, VSContext context)
         {
-            var args = new ProcessStartInfo()
+            string pipelineObject = string.Empty;
+            if (command.StartsWith("|") || command.StartsWith(">"))
+            {
+                command = command.TrimStart('|', '>', ' ');
+                pipelineObject = $"{context} | ConvertFrom-Json | ";
+            }
+
+            var info = new ProcessStartInfo("powershell")
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,
-                RedirectStandardOutput = true
+                RedirectStandardOutput = true,
+                Arguments = $"-ExecutionPolicy Bypass -NonInteractive -Command \"{Escape(pipelineObject)}{Escape(command)}\""
+                //-ExecutionPolicy Bypass -NonInteractive -Command
             };
+            AddMSBuildPath(info);
 
-            switch (context.Tool.ToLowerInvariant())
+            return info;
+        }
+
+        private static ProcessStartInfo AddMSBuildPath(ProcessStartInfo info)
+        {
+            var msbuild = (from folder in Directory.EnumerateDirectories(@"C:\Windows\Microsoft.NET\Framework\")
+                           orderby folder descending
+                           let file = Path.Combine(folder, "MSBuild.exe")
+                           where File.Exists(file)
+                           select folder).FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(msbuild))
             {
-                case "powershell>":
-                    args.FileName = "powershell";
-                    args.Arguments = "-ExecutionPolicy Bypass -NonInteractive -Command ";
-                    break;
+                info.EnvironmentVariables["PATH"] = (msbuild + ';' + info.EnvironmentVariables["PATH"]);
             }
 
-            return args;
+            return info;
         }
-            //Resolve-Path HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\* | Get-ItemProperty -Name MSBuildToolsPath
+
+        private static string Escape(string command)
+        {
+            return command.Replace("\"", "\"\"\"")
+                          .Replace("\\", "\\\\")
+                          .Trim();
+        }
     }
 }

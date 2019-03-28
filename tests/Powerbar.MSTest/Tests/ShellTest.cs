@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Linq;
 using Shouldly;
+using System;
+using System.IO;
 using System.Text;
 
 namespace Acklann.Powerbar.MSTest.Tests
@@ -8,28 +9,41 @@ namespace Acklann.Powerbar.MSTest.Tests
     [TestClass]
     public class ShellTest
     {
-        [TestMethod]
-        public void Can_invoke_powershell_command()
+        [DataTestMethod]
+        [DataRow("Get-Verb")]
+        [DataRow("| Write-Host")]
+        [DataRow("git --version")]
+        [DataRow("msbuild /version")]
+        [DataRow("Write-Host $env:USERPROFILE")]
+        [DataRow("ConvertFrom-Json \"{'name': 'foobar'}\" | Write-Host")]
+        [DataRow("ConvertFrom-Json '{''name'': ''foobar''}' | Write-Host")]
+        [DataRow("\"{ \"\"name\"\": \"\"foobar\"\" }\" | ConvertFrom-Json")]
+        [DataRow("\"{ \"\"path\"\": \"\"C:\\project\\foo.sln\"\" }\" | ConvertFrom-Json")]
+        [DataRow("\"{ 'name': '$(([System.Environment]::MachineName))' }\" | ConvertFrom-Json")]
+        public void Can_invoke_powershell_command(string command)
         {
+            // Arrange
             var result = new StringBuilder();
-            Shell.Invoke("Get-Verb", new Context(), (msg) => { result.AppendLine(msg); });
+            var context = CreateContext();
+            void print(string msg) { result.AppendLine(msg); }
 
+            // Act
+            Shell.Invoke(command, context, print);
+            //Console.WriteLine(result);
+
+            // Assert
             result.ToString().ShouldNotBeNullOrEmpty();
+            result.ToString().ShouldNotContain("error", Case.Insensitive);
         }
 
-        [TestMethod]
-        public void Can_invoke_msbuild_command()
+        private static VSContext CreateContext()
         {
+            string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Powerbar));
+            string sln = Path.Combine(rootFolder, "example.sln");
+            string proj = Path.Combine(rootFolder, "example/example.proj");
+            string item = Path.Combine(rootFolder, "example/Class1.cs");
+
+            return new VSContext(sln, proj, item, nameof(Powerbar));
         }
-
-        [TestMethod]
-        public void Should_represent_context_as_json()
-        {
-            var sut = new Context("powershell");
-            var result = JObject.Parse(sut);
-
-            result.ShouldNotBeNull();
-        }
-
     }
 }
