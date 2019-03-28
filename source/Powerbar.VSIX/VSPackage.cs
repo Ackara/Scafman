@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -21,36 +22,47 @@ namespace Acklann.Powerbar
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
-        public VSPackage()
-        {
-        }
-
         internal VSContext CreateContext()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            System.Diagnostics.Debug.WriteLine(_dte.Solution.FullName);
+            _dte.GetProjectInfo(out string project, out string projectItem, out string[] selectedItems, out string ns, out string assemblyName, out string version);
 
-            return new VSContext();
+            WriteLine($"solution: {_dte.Solution.FullName}");
+            WriteLine($"project: {project}");
+            WriteLine($"project-item: {projectItem}");
+            WriteLine($"{nameof(selectedItems)}: " + string.Join(" | ", selectedItems));
+            WriteLine($"namespace: {ns}");
+            WriteLine($"assembly: {assemblyName}");
+            WriteLine($"version: {version}");
+            WriteLine("\n");
+
+            return new VSContext(
+                _dte.Solution.FullName,
+                project,
+                projectItem, selectedItems,
+                ns, assemblyName, version);
         }
 
         internal string PromptUser(Location location, VSContext context)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (_model == null) _model = new CommandPromptViewModel();
             _model.Location = context.GetLocation(location);
+            _model.Clear();
 
             var dialog = new CommandPrompt(_model);
             dialog.Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual;
-            bool? result = dialog.ShowDialog();
-            return (result.HasValue && result.Value) ? _model.UserInput : string.Empty;
+            dialog.ShowDialog();
+
+            return (_model.UserInput ?? string.Empty).Trim();
         }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            _model = new CommandPromptViewModel();
             _console = CreateOutputPane(Vsix.Name);
 
             _dte = await GetServiceAsync(typeof(DTE)) as DTE2;
@@ -74,15 +86,20 @@ namespace Acklann.Powerbar
         private void ExecuteCommand(string command, VSContext context)
         {
             if (string.IsNullOrWhiteSpace(command)) return;
+            ShellOptions options = _model.GetOptions();
+            command = command.Trim('|', '>', ' ');
+
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _console.Clear();
             _console.Activate();
             WriteLine(command + "\r\n");
-            //Shell.Invoke(command.Trim(), context, Print);
+            //Shell.Invoke(command, context, Print);
         }
 
         #region Private Members
+
+        private readonly Regex _pattern = new Regex("^[|>]{1,2}", RegexOptions.Compiled);
 
         private DTE2 _dte;
         private IVsOutputWindowPane _console;

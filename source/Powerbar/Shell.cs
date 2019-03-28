@@ -5,14 +5,19 @@ using System.Linq;
 
 namespace Acklann.Powerbar
 {
+    //https://stackoverflow.com/questions/25772622/how-do-i-echo-into-an-existing-cmd-window
+
+
     public static class Shell
     {
-        public static void Invoke(string command, VSContext context, Action<string> callback)
+
+
+        public static void Invoke(string command, ShellOptions options, VSContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
             void dataHandler(object s, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
-            using (var exe = new Process { StartInfo = CreateArgs(command, context) })
+            using (var exe = new Process { StartInfo = CreateArgs(command, options, context) })
             {
                 exe.ErrorDataReceived += dataHandler;
                 exe.OutputDataReceived += dataHandler;
@@ -25,14 +30,10 @@ namespace Acklann.Powerbar
             }
         }
 
-        internal static ProcessStartInfo CreateArgs(string command, VSContext context)
+        public static ProcessStartInfo CreateArgs(string command, ShellOptions options, VSContext context)
         {
-            string pipelineObject = string.Empty;
-            if (command.StartsWith("|") || command.StartsWith(">"))
-            {
-                command = command.TrimStart('|', '>', ' ');
-                pipelineObject = $"{context} | ConvertFrom-Json | ";
-            }
+            string pipelineObject = (options.HasFlag(ShellOptions.PipeContext) ?
+                $"{context} | ConvertFrom-Json | " : string.Empty);
 
             var info = new ProcessStartInfo("powershell")
             {
@@ -41,13 +42,12 @@ namespace Acklann.Powerbar
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 Arguments = $"-ExecutionPolicy Bypass -NonInteractive -Command \"{Escape(pipelineObject)}{Escape(command)}\""
-                //-ExecutionPolicy Bypass -NonInteractive -Command
             };
             AddMSBuildPath(info);
 
             return info;
         }
-
+        
         private static ProcessStartInfo AddMSBuildPath(ProcessStartInfo info)
         {
             var msbuild = (from folder in Directory.EnumerateDirectories(@"C:\Windows\Microsoft.NET\Framework\")

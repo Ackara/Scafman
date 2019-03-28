@@ -12,10 +12,11 @@ namespace Acklann.Powerbar
         public CommandPrompt(CommandPromptViewModel context = null)
         {
             InitializeComponent();
-            if (context != null) base.DataContext = _viewModel = context;
-            Title = Vsix.Name;
+            if (context != null) DataContext = _viewModel = context;
 
-            
+            Title = Vsix.Name;
+            SizeToContent = (_viewModel.Width <= CommandPromptViewModel.MINIMUM_WIDTH ? SizeToContent.Width : SizeToContent.Manual);
+            WindowStartupLocation = (_viewModel.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }
 
         private readonly CommandPromptViewModel _viewModel;
@@ -23,8 +24,6 @@ namespace Acklann.Powerbar
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Inputbox.Focus();
-            Inputbox.CaretIndex = 0;
-            Inputbox.Select(0, _viewModel.UserInput.Length);
             System.Diagnostics.Debug.WriteLine("Prompt Opened");
         }
 
@@ -53,6 +52,11 @@ namespace Acklann.Powerbar
                     Close();
                     break;
             }
+        }
+
+        private void OnSourceInitialized(object sender, System.EventArgs e)
+        {
+            this.HideMinimizeAndMaximizeButtons();
         }
     }
 }
