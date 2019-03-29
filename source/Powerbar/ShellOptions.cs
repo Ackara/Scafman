@@ -7,6 +7,7 @@ namespace Acklann.Powerbar
     {
         None = 0,
         PipeContext = 1,
-        CreateWindow = 2
+        CreateWindow = 2,
+        CreateNewFile = 4
     }
 }

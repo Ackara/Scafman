@@ -1,0 +1,33 @@
+[
+  {
+    "Name": "build",
+    "FileList":
+    [
+      "build.ps1",
+      "tasks.ps1"
+    ]
+  },
+  {
+    "Name": "css",
+    "FileList":
+    [
+      "app.css"
+    ]
+  },
+  {
+    "Name": "js",
+    "FileList":
+    [
+      "app.js"
+    ]
+  },
+  {
+    "Name": "mvc",
+    "FileList":
+    [
+      "@(css)",
+      "@(js)",
+      "index.cshtml"
+    ]
+  }
+]

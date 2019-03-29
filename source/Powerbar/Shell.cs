@@ -2,19 +2,22 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Acklann.Powerbar
 {
     //https://stackoverflow.com/questions/25772622/how-do-i-echo-into-an-existing-cmd-window
 
-    public static class Shell
+    public class Shell
     {
+        public static readonly Regex Switches = new Regex(@"^[/\\\|>]+", RegexOptions.Compiled);
+
         public static void Invoke(string location, string command, ShellOptions options, VSContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
             void dataHandler(object sender, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
-            using (var exe = new Process { StartInfo = CreateArgs(location, command, options, context) })
+            using (var exe = new Process { StartInfo = CreateProcessInfo(location, command, options, context) })
             {
                 exe.ErrorDataReceived += dataHandler;
                 exe.OutputDataReceived += dataHandler;
@@ -27,7 +30,25 @@ namespace Acklann.Powerbar
             }
         }
 
-        internal static ProcessStartInfo CreateArgs(string location, string command, ShellOptions options, VSContext context)
+        public static ShellOptions GetOptions(ref string command)
+        {
+            if (string.IsNullOrEmpty(command)) return ShellOptions.None;
+            var options = ShellOptions.None;
+
+            Match match = Switches.Match(command);
+            if (match.Success)
+            {
+                if (match.Value.Contains('|')) options |= ShellOptions.PipeContext;
+                if (match.Value.Contains('>')) options |= ShellOptions.CreateWindow;
+                if (match.Value.Contains('/')) options |= ShellOptions.CreateNewFile;
+                if (match.Value.Contains('\\')) options |= ShellOptions.CreateNewFile;
+            }
+
+            command = command.TrimStart('|', '/', '\\', '>', ' ');
+            return options;
+        }
+
+        internal static ProcessStartInfo CreateProcessInfo(string location, string command, ShellOptions options, VSContext context)
         {
             string pipelineObject = (options.HasFlag(ShellOptions.PipeContext) ?
                 $"{context} | ConvertFrom-Json | " : string.Empty);
