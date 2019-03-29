@@ -21,12 +21,13 @@ namespace Acklann.Powerbar.MSTest.Tests
         public void Can_invoke_powershell_command(string command)
         {
             // Arrange
-            var result = new StringBuilder();
             var context = CreateContext();
+            string cwd = Path.GetTempPath();
+            var result = new StringBuilder();
             void print(string msg) { result.AppendLine(msg); }
 
             // Act
-            Shell.Invoke(command, ShellOptions.None, context, print);
+            Shell.Invoke(cwd, command, ShellOptions.None, context, print);
             //System.Console.WriteLine(result);
 
             // Assert
@@ -42,9 +43,11 @@ namespace Acklann.Powerbar.MSTest.Tests
             // Arrange
             var results = new StringBuilder();
             var context = CreateContext();
+            void print(string msg) { results.AppendLine(msg); }
+            string cwd = Path.GetTempPath();
 
             // Act
-            Shell.Invoke(command, ShellOptions.PipeContext, context, (msg) => { results.AppendLine(msg); });
+            Shell.Invoke(cwd, command, ShellOptions.PipeContext, context, print);
             //System.Console.WriteLine(results);
 
             // Assert

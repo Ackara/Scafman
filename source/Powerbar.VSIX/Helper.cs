@@ -75,7 +75,7 @@ namespace Acklann.Powerbar
                         return Path.GetDirectoryName(context.ProjectFilePath);
                     else if (!string.IsNullOrEmpty(context.ProjectFilePath))
                         return Path.GetDirectoryName(context.SolutionFilePath);
-                    else return System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+                    else return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
                 case Location.Project:
                     return Path.GetDirectoryName(context.ProjectFilePath) ?? throw new DirectoryNotFoundException("Could not find the project directory.");

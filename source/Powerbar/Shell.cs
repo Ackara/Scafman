@@ -7,17 +7,14 @@ namespace Acklann.Powerbar
 {
     //https://stackoverflow.com/questions/25772622/how-do-i-echo-into-an-existing-cmd-window
 
-
     public static class Shell
     {
-
-
-        public static void Invoke(string command, ShellOptions options, VSContext context, Action<string> callback)
+        public static void Invoke(string location, string command, ShellOptions options, VSContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
-            void dataHandler(object s, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
-            using (var exe = new Process { StartInfo = CreateArgs(command, options, context) })
+            void dataHandler(object sender, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
+            using (var exe = new Process { StartInfo = CreateArgs(location, command, options, context) })
             {
                 exe.ErrorDataReceived += dataHandler;
                 exe.OutputDataReceived += dataHandler;
@@ -30,7 +27,7 @@ namespace Acklann.Powerbar
             }
         }
 
-        public static ProcessStartInfo CreateArgs(string command, ShellOptions options, VSContext context)
+        internal static ProcessStartInfo CreateArgs(string location, string command, ShellOptions options, VSContext context)
         {
             string pipelineObject = (options.HasFlag(ShellOptions.PipeContext) ?
                 $"{context} | ConvertFrom-Json | " : string.Empty);
@@ -41,13 +38,14 @@ namespace Acklann.Powerbar
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
+                WorkingDirectory = location,
                 Arguments = $"-ExecutionPolicy Bypass -NonInteractive -Command \"{Escape(pipelineObject)}{Escape(command)}\""
             };
             AddMSBuildPath(info);
 
             return info;
         }
-        
+
         private static ProcessStartInfo AddMSBuildPath(ProcessStartInfo info)
         {
             var msbuild = (from folder in Directory.EnumerateDirectories(@"C:\Windows\Microsoft.NET\Framework\")

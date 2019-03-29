@@ -19,12 +19,12 @@ namespace Acklann.Powerbar.ViewModels
 
         public CommandPromptViewModel(string stateFilePath, int capacity = DEFAULT_CAPACITY)
         {
-            _stateFilePath = stateFilePath;
+            _stateFilePath = stateFilePath ?? throw new ArgumentNullException(nameof(stateFilePath));
             _history = new string[capacity];
         }
 
         public const int MINIMUM_WIDTH = 300;
-        public const int DEFAULT_CAPACITY = 25;
+        public const int DEFAULT_CAPACITY = 16;
         public const int DEFAULT_POSITION = 100;
 
         [XmlIgnore]
@@ -105,6 +105,8 @@ namespace Acklann.Powerbar.ViewModels
         public static CommandPromptViewModel Restore(string stateFilePath = null)
         {
             if (string.IsNullOrEmpty(stateFilePath)) stateFilePath = GetDefaultFilePath();
+            if (!File.Exists(stateFilePath)) return new CommandPromptViewModel(stateFilePath);
+
             using (Stream file = File.OpenRead(stateFilePath))
             {
                 var serializer = new XmlSerializer(typeof(CommandPromptViewModel));

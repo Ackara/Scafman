@@ -22,47 +22,11 @@ namespace Acklann.Powerbar
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
-        internal VSContext CreateContext()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            _dte.GetProjectInfo(out string project, out string projectItem, out string[] selectedItems, out string ns, out string assemblyName, out string version);
-
-            WriteLine($"solution: {_dte.Solution.FullName}");
-            WriteLine($"project: {project}");
-            WriteLine($"project-item: {projectItem}");
-            WriteLine($"{nameof(selectedItems)}: " + string.Join(" | ", selectedItems));
-            WriteLine($"namespace: {ns}");
-            WriteLine($"assembly: {assemblyName}");
-            WriteLine($"version: {version}");
-            WriteLine("\n");
-
-            return new VSContext(
-                _dte.Solution.FullName,
-                project,
-                projectItem, selectedItems,
-                ns, assemblyName, version);
-        }
-
-        internal string PromptUser(Location location, VSContext context)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            _model.Location = context.GetLocation(location);
-            _model.Clear();
-
-            var dialog = new CommandPrompt(_model);
-            dialog.Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual;
-            dialog.ShowDialog();
-
-            return (_model.UserInput ?? string.Empty).Trim();
-        }
-
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _model = new CommandPromptViewModel();
+            _model = CommandPromptViewModel.Restore();
             _console = CreateOutputPane(Vsix.Name);
 
             _dte = await GetServiceAsync(typeof(DTE)) as DTE2;
@@ -71,30 +35,81 @@ namespace Acklann.Powerbar
             var commandService = await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Assumes.Present(commandService);
             commandService.AddCommand(new MenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
+            //commandService.AddCommand(new MenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
+            //commandService.AddCommand(new MenuCommand(OnSolutionLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.SolutionLevelCommandId)));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _model.Save();
+            base.Dispose(disposing);
+        }
+
+        private VSContext CreateContext()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            _dte.GetProjectInfo(out string project, out string projectItem, out string[] selectedItems, out string ns, out string assemblyName, out string version);
+            //WriteLine($"solution: {_dte.Solution.FullName}");
+            //WriteLine($"project: {project}");
+            //WriteLine($"project-item: {projectItem}");
+            //WriteLine($"{nameof(selectedItems)}: " + string.Join(" | ", selectedItems));
+            //WriteLine($"namespace: {ns}");
+            //WriteLine($"assembly: {assemblyName}");
+            //WriteLine($"version: {version}");
+            //WriteLine("\n");
+
+            return new VSContext(
+                _dte.Solution.FullName, project, projectItem, selectedItems,
+                ns, assemblyName, version);
+        }
+
+        private string PromptUser(string location)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            _model.Clear();
+            _model.Location = location;
+
+            var dialog = new CommandPrompt(_model);
+            dialog.Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual;
+            dialog.ShowDialog();
+
+            return (_model.UserInput ?? string.Empty).Trim();
         }
 
         // ==================== COMMANDS ==================== //
 
         private void OnCurrentLevelCommandInvoked(object sender, EventArgs e)
         {
-            VSContext context = CreateContext();
-            string command = PromptUser(Location.Current, context);
-
-            ExecuteCommand(command, context);
+            ExecuteCommand(Location.Current, null);
         }
 
-        private void ExecuteCommand(string command, VSContext context)
+        private void OnProjectLevelCommandInvoked(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(command)) return;
+            ExecuteCommand(Location.Project, null);
+        }
+
+        private void OnSolutionLevelCommandInvoked(object sender, EventArgs e)
+        {
+            ExecuteCommand(Location.Solution, null);
+        }
+
+        private void ExecuteCommand(Location location, string command)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            VSContext context = CreateContext();
+            string cwd = context.GetLocation(Location.Current);
+            if (string.IsNullOrWhiteSpace(command)) command = PromptUser(cwd);
+
             ShellOptions options = _model.GetOptions();
             command = command.Trim('|', '>', ' ');
-
-            ThreadHelper.ThrowIfNotOnUIThread();
 
             _console.Clear();
             _console.Activate();
             WriteLine(command + "\r\n");
-            //Shell.Invoke(command, context, Print);
+            Shell.Invoke(cwd, command, options, context, WriteLine);
         }
 
         #region Private Members

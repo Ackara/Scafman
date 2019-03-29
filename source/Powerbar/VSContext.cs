@@ -46,14 +46,5 @@ namespace Acklann.Powerbar
             });
             return $"'{{ {properties} }}'";
         }
-
-        #region Operators
-
-        public static implicit operator string(VSContext obj)
-        {
-            return obj.ToString();
-        }
-
-        #endregion Operators
     }
 }
