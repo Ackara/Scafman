@@ -12,7 +12,7 @@ namespace Acklann.Powerbar
     {
         public static readonly Regex Switches = new Regex(@"^[/\\\|>]+", RegexOptions.Compiled);
 
-        public static void Invoke(string location, string command, ShellOptions options, VSContext context, Action<string> callback)
+        public static void Invoke(string location, string command, Switch options, VSContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
@@ -30,27 +30,27 @@ namespace Acklann.Powerbar
             }
         }
 
-        public static ShellOptions GetOptions(ref string command)
+        public static Switch GetOptions(ref string command)
         {
-            if (string.IsNullOrEmpty(command)) return ShellOptions.None;
-            var options = ShellOptions.None;
+            if (string.IsNullOrEmpty(command)) return Switch.None;
+            var options = Switch.None;
 
             Match match = Switches.Match(command);
             if (match.Success)
             {
-                if (match.Value.Contains('|')) options |= ShellOptions.PipeContext;
-                if (match.Value.Contains('>')) options |= ShellOptions.CreateWindow;
-                if (match.Value.Contains('/')) options |= ShellOptions.CreateNewFile;
-                if (match.Value.Contains('\\')) options |= ShellOptions.CreateNewFile;
+                if (match.Value.Contains('|')) options |= Switch.PipeContext;
+                if (match.Value.Contains('>')) options |= Switch.CreateWindow;
+                if (match.Value.Contains('/')) options |= Switch.CreateNewFile;
+                if (match.Value.Contains('\\')) options |= Switch.CreateNewFile;
             }
 
             command = command.TrimStart('|', '/', '\\', '>', ' ');
             return options;
         }
 
-        internal static ProcessStartInfo CreateProcessInfo(string location, string command, ShellOptions options, VSContext context)
+        internal static ProcessStartInfo CreateProcessInfo(string location, string command, Switch options, VSContext context)
         {
-            string pipelineObject = (options.HasFlag(ShellOptions.PipeContext) ?
+            string pipelineObject = (options.HasFlag(Switch.PipeContext) ?
                 $"{context} | ConvertFrom-Json | " : string.Empty);
 
             var info = new ProcessStartInfo("powershell")

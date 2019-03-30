@@ -28,7 +28,7 @@ namespace Acklann.Powerbar.MSTest.Tests
             void print(string msg) { result.AppendLine(msg); }
 
             // Act
-            Shell.Invoke(cwd, command, ShellOptions.None, context, print);
+            Shell.Invoke(cwd, command, Switch.None, context, print);
             //System.Console.WriteLine(result);
 
             // Assert
@@ -39,7 +39,7 @@ namespace Acklann.Powerbar.MSTest.Tests
         [DataTestMethod]
         [DataRow("Write-Host")]
         [DataRow("select " + nameof(VSContext.RootNamespace))]
-        public void Can_pipe_object_powershell(string command)
+        public void Can_pipe_a_psobject(string command)
         {
             // Arrange
             var results = new StringBuilder();
@@ -48,7 +48,7 @@ namespace Acklann.Powerbar.MSTest.Tests
             string cwd = Path.GetTempPath();
 
             // Act
-            Shell.Invoke(cwd, command, ShellOptions.PipeContext, context, print);
+            Shell.Invoke(cwd, command, Switch.PipeContext, context, print);
             //System.Console.WriteLine(results);
 
             // Assert
@@ -103,15 +103,15 @@ namespace Acklann.Powerbar.MSTest.Tests
         }
 
         [DataTestMethod]
-        [DataRow("", (ShellOptions.None))]
-        [DataRow(null, (ShellOptions.None))]
-        [DataRow("|", (ShellOptions.PipeContext))]
-        [DataRow(">", (ShellOptions.CreateWindow))]
-        [DataRow("'hello' | Write-Host", (ShellOptions.None))]
-        [DataRow(@"\ Person.cs", (ShellOptions.CreateNewFile))]
-        [DataRow(@"/..\Person.cs", (ShellOptions.CreateNewFile))]
-        [DataRow("|>", (ShellOptions.PipeContext | ShellOptions.CreateWindow))]
-        public void Can_determine_shell_options_from_a_string(string command, ShellOptions expected)
+        [DataRow("", (Switch.None))]
+        [DataRow(null, (Switch.None))]
+        [DataRow("|", (Switch.PipeContext))]
+        [DataRow(">", (Switch.CreateWindow))]
+        [DataRow("'hello' | Write-Host", (Switch.None))]
+        [DataRow(@"\ Person.cs", (Switch.CreateNewFile))]
+        [DataRow(@"/..\Person.cs", (Switch.CreateNewFile))]
+        [DataRow("|>", (Switch.PipeContext | Switch.CreateWindow))]
+        public void Can_extract_switches_from_a_command(string command, Switch expected)
         {
             var options = Shell.GetOptions(ref command);
 

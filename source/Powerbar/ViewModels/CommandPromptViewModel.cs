@@ -174,23 +174,6 @@ namespace Acklann.Powerbar.ViewModels
             }
         }
 
-        public ShellOptions GetOptions()
-        {
-            if (string.IsNullOrEmpty(_userInput)) return ShellOptions.None;
-
-            var options = ShellOptions.None;
-            Match match = _pattern.Match(_userInput.Trim());
-            if (match.Success)
-            {
-                if (match.Value.Contains("|")) options |= ShellOptions.PipeContext;
-                if (match.Value.Contains(">")) options |= ShellOptions.CreateWindow;
-            }
-
-            if (_openInOtherWindow) options |= ShellOptions.CreateWindow;
-
-            return options;
-        }
-
         protected void RaisePropertyChangedEvent(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

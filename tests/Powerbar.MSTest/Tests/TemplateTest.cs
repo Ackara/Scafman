@@ -18,7 +18,7 @@ namespace Acklann.Powerbar.Tests
         public void Can_match_filename_to_a_template(string filename, string expectedFile)
         {
             // Act
-            var filePath = Template.Locate(filename, MockFactory.DirectoryName);
+            var filePath = Template.Find(filename, MockFactory.DirectoryName);
             if (expectedFile == null && filePath == null) return;
             var file = new FileInfo(filePath);
 
@@ -39,6 +39,20 @@ namespace Acklann.Powerbar.Tests
             var result = Template.ExpandItemGroup(input, config);
 
             result.ShouldBe(expected);
+        }
+
+        [DataTestMethod]
+        [DataRow("../person.cs", "")]
+        [DataRow("person.cs", "Models")]
+        [DataRow("viewModel/person.cs", "Models\\viewModel")]
+        [DataRow(".\\viewModel\\person.cs", "Models\\viewModel")]
+        public void Can_determine_a_project_subfolder(string relativePath, string expected)
+        {
+            var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Powerbar), "src", "Foo");
+            var location = Path.Combine(Path.GetTempPath(), nameof(Powerbar), "src", "Foo", "Models");
+
+            var result = Template.GetSubfolder(relativePath, projectFolder, location);
+            result.ShouldBe(expected, StringCompareShould.IgnoreCase);
         }
 
         [TestMethod]

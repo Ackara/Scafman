@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acklann.GlobN;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,35 +9,18 @@ namespace Acklann.Powerbar
 {
     public class Template
     {
-        public static string Locate(string filename, string folder)
+        public static string RemoveCaret(string content, out int position)
         {
-            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
-            if (!Directory.Exists(folder)) throw new DirectoryNotFoundException($"Could not find directory at '{folder}'.");
+            position = 0;
+            if (string.IsNullOrEmpty(content)) return string.Empty;
 
-            return Find(filename, Directory.GetFiles(folder));
-        }
-
-        public static string Find(string filename, params string[] templateFiles)
-        {
-            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
-            filename = Path.GetFileName(filename);
-
-            // Attemp #1: Checking to see if I can get an exact match first.
-            foreach (string path in templateFiles)
-                if (string.Equals(filename, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
-                {
-                    return path;
-                }
-
-            // Attempt #2: Treating (~) as a wildcard, find the first template that best math the file name.
-            foreach (string path in templateFiles.OrderByDescending(x => x.Length))
+            Match match = Regex.Match(content, @"(\$caret\$|\$end\$)", RegexOptions.IgnoreCase);
+            if (match.Success)
             {
-                // TODO: Replace DotNet.Globbing with GlobN
-                var pattern = DotNet.Globbing.Glob.Parse(Path.GetFileName(path).Replace('~', '*'));
-                if (pattern.IsMatch($"{filename}")) return path;
+                position = match.Index;
+                return content.Remove(match.Index, match.Length);
             }
-
-            return null;
+            return content;
         }
 
         public static string ExpandItemGroup(string input, string configurationFilePath)
@@ -71,14 +55,25 @@ namespace Acklann.Powerbar
             return input;
         }
 
-        public static string Replace(string content, IEnumerable<KeyValuePair<string, string>> tokens)
+        public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> tokens)
         {
-            if (string.IsNullOrEmpty(content) || tokens == null) return content;
+            if (string.IsNullOrEmpty(text) || tokens == null) return text;
 
             foreach (var pair in tokens)
-                content = Regex.Replace(content, $@"(\${pair.Key}\$|{{{pair.Key}}})", Environment.ExpandEnvironmentVariables(pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
+                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", Environment.ExpandEnvironmentVariables(pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
 
-            return content;
+            return text;
+        }
+
+        public static string GetSubfolder(string filePath, string projectFolder, string currentWorkingDirectory)
+        {
+            if (string.IsNullOrEmpty(filePath)) throw new ArgumentNullException(nameof(filePath));
+            if (string.IsNullOrEmpty(projectFolder)) throw new ArgumentNullException(nameof(projectFolder));
+            if (string.IsNullOrEmpty(currentWorkingDirectory)) throw new ArgumentNullException(nameof(currentWorkingDirectory));
+
+            string absolutePath = ((Glob)filePath).ExpandPath(currentWorkingDirectory).Replace('/', '\\');
+            string subfolder = Path.GetDirectoryName(absolutePath.Replace(projectFolder.Replace('/', '\\'), string.Empty)).Trim('/', '\\', ' ');
+            return (subfolder.Length == absolutePath.Length ? string.Empty : subfolder);
         }
 
         public static IEnumerable<KeyValuePair<string, string>> GetReplacmentTokens()
@@ -92,6 +87,44 @@ namespace Acklann.Powerbar
                 new KeyValuePair<string, string>("time", $"{time:YYYY-MM-DD}"),
                 new KeyValuePair<string, string>("guid", $"{Guid.NewGuid()}"),
             };
+        }
+
+        public static string Find(string filename, params string[] templateDirectories)
+        {
+            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+
+            string templatePath;
+            foreach (string folder in templateDirectories)
+                if (Directory.Exists(folder))
+                {
+                    templatePath = Find(Directory.GetFiles(folder), filename);
+                    if (!string.IsNullOrEmpty(templatePath)) return templatePath;
+                }
+
+            return null;
+        }
+
+        internal static string Find(string[] templateFiles, string filename)
+        {
+            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+            filename = Path.GetFileName(filename);
+
+            // Attemp #1: Checking to see if I can get an exact match first.
+            foreach (string path in templateFiles)
+                if (string.Equals(filename, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
+                {
+                    return path;
+                }
+
+            // Attempt #2: Treating (~) as a wildcard, find the first template that best math the file name.
+            foreach (string path in templateFiles.OrderByDescending(x => x.Length))
+            {
+                // TODO: Replace DotNet.Globbing with GlobN
+                var pattern = DotNet.Globbing.Glob.Parse(Path.GetFileName(path).Replace('~', '*'));
+                if (pattern.IsMatch($"{filename}")) return path;
+            }
+
+            return null;
         }
     }
 }

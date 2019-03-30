@@ -3,7 +3,7 @@
 namespace Acklann.Powerbar
 {
     [Flags]
-    public enum ShellOptions
+    public enum Switch
     {
         None = 0,
         PipeContext = 1,

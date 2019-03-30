@@ -9,7 +9,7 @@
         WindowStartupLocation="Manual"
         ShowInTaskbar="False"
         MinHeight="100"
-        Height="125"
+        Height="100"
         Width="{Binding Width, Mode=TwoWay}"
         Top="{Binding Top, Mode=TwoWay}"
         Left="{Binding Left, Mode=TwoWay}"
@@ -32,7 +32,7 @@
             </Style>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid Margin="12, 24">
+    <Grid Margin="12, 6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -45,7 +45,7 @@
 
         <TextBlock Grid.Column="0"
                    Grid.Row="0">
-            <Run Text="PS "
+            <Run Text=""
                  FontWeight="Light" />
             <Run Text="{Binding CurrentFolder, Mode=OneWay}"
                  FontWeight="SemiBold" />
@@ -57,7 +57,9 @@
                  HorizontalAlignment="Stretch"
                  VerticalAlignment="Center"
                  FontFamily="Consolas"
+                 Background="Transparent"
                  Margin="4, 0, 0, 0"
+                 Padding="3, 6"
                  Grid.Column="1"
                  Grid.Row="0" />
 
