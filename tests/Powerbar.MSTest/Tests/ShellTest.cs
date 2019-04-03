@@ -105,18 +105,23 @@ namespace Acklann.Powerbar.MSTest.Tests
         [DataTestMethod]
         [DataRow("", (Switch.None))]
         [DataRow(null, (Switch.None))]
-        [DataRow("|", (Switch.PipeContext))]
-        [DataRow(">", (Switch.CreateWindow))]
-        [DataRow("'hello' | Write-Host", (Switch.None))]
-        [DataRow(@"\ Person.cs", (Switch.CreateNewFile))]
-        [DataRow(@"/..\Person.cs", (Switch.CreateNewFile))]
-        [DataRow("|>", (Switch.PipeContext | Switch.CreateWindow))]
+        [DataRow(@"Models/", (Switch.AddFile))]
+        [DataRow(@"Person.cs", (Switch.AddFile))]
+        [DataRow("> Write-Host", (Switch.RunCommand))]
+        [DataRow("> 'hello' | Write-Host", (Switch.RunCommand))]
+        [DataRow("| Write-Host", (Switch.PipeContext | Switch.RunCommand))]
+        [DataRow("|> Write-Host", (Switch.RunCommand | Switch.PipeContext))]
+        [DataRow(">| Write-Host", (Switch.RunCommand | Switch.PipeContext))]
+        [DataRow(">> Write-Host", (Switch.RunCommand | Switch.RunCommandInWindow))]
+        [DataRow("|| Write-Host", (Switch.RunCommand | Switch.PipeContext | Switch.RunCommandInWindow))]
+        [DataRow("|>> Write-Host", (Switch.RunCommand | Switch.RunCommandInWindow | Switch.PipeContext))]
+        [DataRow("||> Write-Host", (Switch.RunCommand | Switch.RunCommandInWindow | Switch.PipeContext))]
         public void Can_extract_switches_from_a_command(string command, Switch expected)
         {
-            var options = Shell.GetOptions(ref command);
+            var options = Shell.ExtractOptions(ref command);
 
             options.ShouldBe(expected);
-            command?.ShouldNotMatch(Shell.Switches.ToString());
+            command?.ShouldNotMatch(Shell.SwitchePattern.ToString());
         }
 
         private static VSContext CreateContext()

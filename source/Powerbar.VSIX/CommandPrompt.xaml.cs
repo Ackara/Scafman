@@ -24,7 +24,6 @@ namespace Acklann.Powerbar
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Inputbox.Focus();
-            System.Diagnostics.Debug.WriteLine("Prompt Opened");
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)

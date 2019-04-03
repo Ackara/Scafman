@@ -2,6 +2,8 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
+  <Include href="KnownImageIds.vsct" />
+  <!-- Product: Powerbar -->
 
   <Commands package="Package">
     <Groups>
@@ -16,15 +18,18 @@
       <Group guid="CmdSet" id="FileContextMenuGroup" priority="0x0100">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
       </Group>
+
+      <Group guid="CmdSet" id="MiscCommandGroup" />
+      <Group guid="CmdSet" id="ActionCommandGroup" />
     </Groups>
 
     <Menus>
       <Menu type="Menu" guid="CmdSet" id="ToolsMenuId" priority="1">
         <Parent guid="CmdSet" id="VSToolsMenuGroup" />
-
         <Strings>
           <MenuText>Powerbar</MenuText>
           <ButtonText>Powerbar</ButtonText>
+          <CommandName>Powerbar</CommandName>
         </Strings>
       </Menu>
     </Menus>
@@ -32,22 +37,81 @@
     <Buttons>
       <Button guid="CmdSet" id="CurrentLevelCommandId">
         <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Open Powerbar</ButtonText>
+          <CommandName>OpenPowerbarAtSelectedItem</CommandName>
+          <ToolTipText>Open the Powerbar at this directory.</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="ProjectLevelCommandId">
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Open Powerbar at Project Level</ButtonText>
+          <CommandName>OpenPowerbarAtProjectLevel</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="SolutionLevelCommandId">
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Open Powerbar at Solution Level</ButtonText>
+          <CommandName>OpenPowerbarAtSolutionLevel</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="ConfigurationPageCommandId">
+        <Icon guid="ImageCatalogGuid" id="Settings" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Options...</ButtonText>
         </Strings>
       </Button>
     </Buttons>
   </Commands>
 
   <CommandPlacements>
+    <CommandPlacement guid="CmdSet" id="ActionCommandGroup" priority="1">
+      <Parent guid="CmdSet" id="ToolsMenuId" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="MiscCommandGroup" priority="2">
+      <Parent guid="CmdSet" id="ToolsMenuId" />
+    </CommandPlacement>
+
     <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
       <Parent guid="CmdSet" id="ProjectContextMenuGroup" />
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
+      <Parent guid="CmdSet" id="ActionCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
       <Parent guid="CmdSet" id="FileContextMenuGroup" />
     </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="ProjectLevelCommandId" priority="2">
+      <Parent guid="CmdSet" id="ActionCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="SolutionLevelCommandId" priority="3">
+      <Parent guid="CmdSet" id="ActionCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="ConfigurationPageCommandId" priority="1">
+      <Parent guid="CmdSet" id="MiscCommandGroup" />
+    </CommandPlacement>
   </CommandPlacements>
+
+  <VisibilityConstraints>
+    <VisibilityItem guid="CmdSet" id="CurrentLevelCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="ProjectLevelCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="SolutionLevelCommandId" context="UICONTEXT_SolutionExists" />
+  </VisibilityConstraints>
 
   <Symbols>
     <GuidSymbol name="Package" value="{3c078121-2119-42af-9055-50abb4af5afe}" />
@@ -57,6 +121,8 @@
       <IDSymbol name="VSToolsMenuGroup" value="0x1020" />
       <IDSymbol name="FileContextMenuGroup" value="0x101" />
       <IDSymbol name="ProjectContextMenuGroup" value="0x102" />
+      <IDSymbol name="ActionCommandGroup" value="0x103" />
+      <IDSymbol name="MiscCommandGroup" value="0x104" />
 
       <IDSymbol name="ToolsMenuId" value="0x201" />
 
@@ -64,6 +130,8 @@
       <IDSymbol name="CurrentLevelCommandId" value="0x300" />
       <IDSymbol name="ProjectLevelCommandId" value="0x301" />
       <IDSymbol name="SolutionLevelCommandId" value="0x302" />
+
+      <IDSymbol name="ConfigurationPageCommandId" value="0x303" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

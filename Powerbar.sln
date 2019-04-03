@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.539
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powerbar", "source\Powerbar\Powerbar.csproj", "{AFD6E520-EB87-4B64-B7CF-F3888721FCD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Powerbar.MSTest", "tests\Powerbar.MSTest\Powerbar.MSTest.csproj", "{C6D09F2E-E309-4048-A501-D234C7C191A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powerbar.MSTest", "tests\Powerbar.MSTest\Powerbar.MSTest.csproj", "{C6D09F2E-E309-4048-A501-D234C7C191A8}"
 EndProject
 Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "build", "build\build.pssproj", "{6F3C1FC2-BF6B-4974-AEC9-54E5952103E0}"
 EndProject

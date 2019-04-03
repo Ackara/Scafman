@@ -10,7 +10,7 @@ namespace Acklann.Powerbar
 
     public class Shell
     {
-        public static readonly Regex Switches = new Regex(@"^[/\\\|>]+", RegexOptions.Compiled);
+        public static readonly Regex SwitchePattern = new Regex(@"^[\|>]+", RegexOptions.Compiled);
 
         public static void Invoke(string location, string command, Switch options, VSContext context, Action<string> callback)
         {
@@ -30,21 +30,24 @@ namespace Acklann.Powerbar
             }
         }
 
-        public static Switch GetOptions(ref string command)
+        public static Switch ExtractOptions(ref string command)
         {
             if (string.IsNullOrEmpty(command)) return Switch.None;
-            var options = Switch.None;
+            var options = Switch.AddFile;
 
-            Match match = Switches.Match(command);
+            Match match = SwitchePattern.Match(command);
             if (match.Success)
             {
-                if (match.Value.Contains('|')) options |= Switch.PipeContext;
-                if (match.Value.Contains('>')) options |= Switch.CreateWindow;
-                if (match.Value.Contains('/')) options |= Switch.CreateNewFile;
-                if (match.Value.Contains('\\')) options |= Switch.CreateNewFile;
+                options = Switch.None;
+
+                if (match.Value.Contains('>')) options |= (Switch.RunCommand);
+                if (match.Value.Contains(">>")) options |= (Switch.RunCommandInWindow);
+
+                if (match.Value.Contains('|')) options |= (Switch.RunCommand | Switch.PipeContext);
+                if (match.Value.Contains("||")) options |= Switch.RunCommandInWindow;
             }
 
-            command = command.TrimStart('|', '/', '\\', '>', ' ');
+            command = command.TrimStart('|', '>', ' ');
             return options;
         }
 

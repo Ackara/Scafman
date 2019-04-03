@@ -37,14 +37,17 @@ namespace Acklann.Powerbar
             _model = CommandPromptViewModel.Restore();
             _console = CreateOutputWindow(Vsix.Name);
 
-            _dte = await GetServiceAsync(typeof(DTE)) as DTE2;
+            _dte = (await GetServiceAsync(typeof(DTE)) as DTE2);
             Assumes.Present(_dte);
 
-            var commandService = await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Assumes.Present(commandService);
-            commandService.AddCommand(new MenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
-            //commandService.AddCommand(new MenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
-            //commandService.AddCommand(new MenuCommand(OnSolutionLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.SolutionLevelCommandId)));
+            var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
+            if (commandService != null)
+            {
+                commandService.AddCommand(new MenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
+                commandService.AddCommand(new MenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
+                commandService.AddCommand(new MenuCommand(OnSolutionLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.SolutionLevelCommandId)));
+                commandService.AddCommand(new MenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ConfigurationPageCommandId)));
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -53,10 +56,9 @@ namespace Acklann.Powerbar
             base.Dispose(disposing);
         }
 
-        private void GetContext(out VSContext context, out EnvDTE.Project vsProject)
+        private void GetContext(out VSContext context, out Project vsProject)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
             _dte.GetProjectInfo(out string project, out string projectItem, out string[] selectedItems, out string ns, out string assemblyName, out string version, out vsProject);
 
             context = new VSContext(
@@ -78,31 +80,35 @@ namespace Acklann.Powerbar
             return (_model.UserInput ?? string.Empty).Trim();
         }
 
-        private void AddItemToProject(EnvDTE.Project project, string location, string fileList, VSContext context)
+        private void AddItemToProject(Project project, string currentWorkingLocation, string fileList, VSContext context)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             if (string.IsNullOrEmpty(fileList)) return;
-            if (project == null) { WriteLine("Could not find any active projects.", LogLevel.Error); return; }
-            if (string.IsNullOrEmpty(location)) { WriteLine("Could not determine your current location", LogLevel.Error); return; }
+            if (string.IsNullOrEmpty(currentWorkingLocation)) { WriteLine("Could not determine your current location", LogLevel.Error); return; }
 
-            if (File.Exists(ConfigurationPage.ItemGroupFile))
-                fileList = Template.ExpandItemGroup(fileList, ConfigurationPage.ItemGroupFile);
+            if (File.Exists(ConfigurationPage.UserItemGroupFile))
+                fileList = Template.ExpandItemGroup(fileList, ConfigurationPage.UserItemGroupFile);
 
             foreach (Glob path in fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (path.IsFolder())
                 {
-                    string folder = path.ExpandPath(location);
-                    if (!Directory.Exists(folder)) project.ProjectItems.AddFromDirectory(folder);
+                    string folder = path.ExpandPath(currentWorkingLocation);
+                    if (!Directory.Exists(folder))
+                    {
+                        if (project == null) _dte.Solution.AddFolder(Path.GetFileName(folder));
+                        else project?.ProjectItems.AddFromDirectory(folder);
+                    }
                     continue;
                 }
 
+                // Locate then create a file template.
                 string template = string.Empty;
                 string name = Path.GetFileName(path);
-                string templatePath = Template.Find(name, ConfigurationPage.TemplateDirectory, _builtinTemplateDirectory);
+                string templatePath = Template.Find(name, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
                 if (File.Exists(templatePath))
                 {
-                    string ns = Template.GetSubfolder(path, Path.GetDirectoryName(context.ProjectFilePath), location).Replace('\\', '.');
+                    string ns = Template.GetSubfolder(path, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingLocation).Replace('\\', '.').Replace('/', '.');
                     _tokens.Upsert(context);
                     _tokens.Upsert("rootnamespace", $"{context.RootNamespace}.{ns}".TrimEnd('.'));
                     _tokens.Upsert("itemname", Path.GetFileNameWithoutExtension(name).SafeName());
@@ -111,16 +117,23 @@ namespace Acklann.Powerbar
                 }
                 else WriteLine("Could not find a template for '{0}'; remember you can always create your own templates. Visit {1} for more information.", name, HELP_LINK);
 
-                string newFile = path.ExpandPath(location);
-                if (File.Exists(newFile)) MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Powerbar), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                string newFile = path.ExpandPath(currentWorkingLocation);
+                if (File.Exists(newFile))
+                {
+                    MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Powerbar), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    VsShellUtilities.OpenDocument(this, newFile);
+                }
                 else
                 {
-                    // Creating the file then add it to solution explorer.
+                    // Write file contents to disk.
                     string folder = Path.GetDirectoryName(newFile);
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                     template = Template.RemoveCaret(template, out int cursorPosition);
                     File.WriteAllText(newFile, template);
-                    project.ProjectItems.AddFromFile(newFile);
+
+                    // Add file to Solution Explorer.
+                    if (project == null) project = _dte.Solution.AddFolder(string.IsNullOrEmpty(folder) ? ConfigurationPage.UserRootProjectName : Path.GetFileName(folder));
+                    project?.ProjectItems.AddFromFile(newFile);
                     VsShellUtilities.OpenDocument(this, newFile);
 
                     // Move the text cursor into position.
@@ -148,22 +161,32 @@ namespace Acklann.Powerbar
             ExecuteCommand(Location.Solution, null);
         }
 
+        private void OnConfigurationCommandInvoked(object sender, EventArgs e)
+        {
+            ShowOptionPage(typeof(ConfigurationPage.General));
+        }
+
         private void ExecuteCommand(Location location, string command = null)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             GetContext(out VSContext context, out Project vsProject);
-            ShowInfo(context);
             string cwd = context.GetLocation(location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
 
-            Switch options = Shell.GetOptions(ref command);
-            if (options.HasFlag(Switch.CreateNewFile)) AddItemToProject(vsProject, cwd, command, context);
+            Switch options = Shell.ExtractOptions(ref command);
+            if (options.HasFlag(Switch.AddFile))
+            {
+                if (location == Location.Solution) vsProject = null;// The will force files to be added to a solution folder instead of the last project.
+                ShowInfo(context);
+                AddItemToProject(vsProject, cwd, command, context);
+            }
             else
             {
                 _console.Clear();
                 _console.Activate();
+                ShowInfo(context);
                 WriteLine(command + "\r\n");
                 Shell.Invoke(cwd, command, options, context, WriteLine);
             }

@@ -1,4 +1,5 @@
 ﻿using Acklann.GlobN;
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -12,11 +13,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Windows;
 
 namespace Acklann.Powerbar
 {
-    public static class Helper
+    internal static class Helper
     {
         private static readonly Regex _illegalChars = new Regex(@"[^a-z_0-9]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -27,7 +27,7 @@ namespace Acklann.Powerbar
 
             vsProject = null;
             var selection = new List<string>();
-            project = rootNamespace = assemblyName = version = string.Empty;
+            project = projectItem = rootNamespace = assemblyName = version = string.Empty;
 
             // Capturing all of the items currently selected by the user.
             EnvDTE.SelectedItems selectedItems = dte.SelectedItems;
@@ -49,26 +49,11 @@ namespace Acklann.Powerbar
                         project = item.Project.FullName;
                         selection.Add(item.Project.FullName);
                     }
-            }
 
-            // Checking to see if their is a start-up project since no project files where selected.
-            if (vsProject == null)
-            {
-                EnvDTE.SolutionBuild solution = dte.Solution.SolutionBuild;
-                if (solution?.StartupProjects != null)
-                    foreach (var item in (Array)solution.StartupProjects)
-                    {
-                        EnvDTE.Project startupProject = dte.Solution.Item(item);
-                        if (startupProject != null)
-                        {
-                            vsProject = startupProject;
-                            project = startupProject.FullName;
-                        }
-                    }
+                projectItem = selection.LastOrDefault();
             }
 
             itemsSelected = selection.ToArray();
-            projectItem = selection.LastOrDefault();
             vsProject?.GetTokens(out rootNamespace, out assemblyName, out version);
         }
 
@@ -91,7 +76,7 @@ namespace Acklann.Powerbar
                         return Path.GetDirectoryName(context.ProjectItemPath);
                     else if (!string.IsNullOrEmpty(context.ProjectFilePath))
                         return Path.GetDirectoryName(context.ProjectFilePath);
-                    else if (!string.IsNullOrEmpty(context.ProjectFilePath))
+                    else if (!string.IsNullOrEmpty(context.SolutionFilePath))
                         return Path.GetDirectoryName(context.SolutionFilePath);
                     else return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
@@ -204,11 +189,31 @@ namespace Acklann.Powerbar
                 }
         }
 
+        public static EnvDTE.Project AddFolder(this EnvDTE.Solution solution, string name)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+
+            var sln = (solution as Solution2);
+            if (sln != null)
+            {
+                foreach (Project project in sln.Projects)
+                    if (project.Name == name)
+                    {
+                        return project;
+                    }
+
+                return sln.AddSolutionFolder(name);
+            }
+
+            return null;
+        }
+
         #region P/Invoke
 
         private const int GWL_STYLE = -16, WS_MAXIMIZEBOX = 0x10000, WS_MINIMIZEBOX = 0x20000;
 
-        internal static void HideMinimizeAndMaximizeButtons(this Window window)
+        internal static void HideMinimizeAndMaximizeButtons(this System.Windows.Window window)
         {
             IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
             var currentStyle = GetWindowLong(hwnd, GWL_STYLE);

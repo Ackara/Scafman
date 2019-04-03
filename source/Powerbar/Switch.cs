@@ -6,8 +6,9 @@ namespace Acklann.Powerbar
     public enum Switch
     {
         None = 0,
-        PipeContext = 1,
-        CreateWindow = 2,
-        CreateNewFile = 4
+        AddFile = 1,
+        RunCommand = 2,
+        PipeContext = 4,
+        RunCommandInWindow = 8,
     }
 }

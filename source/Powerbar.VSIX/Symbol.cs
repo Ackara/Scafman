@@ -16,10 +16,13 @@ namespace Acklann.Powerbar
 			public const int VSToolsMenuGroup = 0x1020;
 			public const int FileContextMenuGroup = 0x101;
 			public const int ProjectContextMenuGroup = 0x102;
+			public const int ActionCommandGroup = 0x103;
+			public const int MiscCommandGroup = 0x104;
 			public const int ToolsMenuId = 0x201;
 			public const int CurrentLevelCommandId = 0x300;
 			public const int ProjectLevelCommandId = 0x301;
 			public const int SolutionLevelCommandId = 0x302;
+			public const int ConfigurationPageCommandId = 0x303;
 		}
 	}
 }
