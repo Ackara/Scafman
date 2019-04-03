@@ -10,5 +10,6 @@ namespace Acklann.Powerbar
         RunCommand = 2,
         PipeContext = 4,
         RunCommandInWindow = 8,
+        Force = 16
     }
 }

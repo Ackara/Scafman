@@ -80,7 +80,7 @@ namespace Acklann.Powerbar
             return (_model.UserInput ?? string.Empty).Trim();
         }
 
-        private void AddItemToProject(Project project, string currentWorkingLocation, string fileList, VSContext context)
+        private void AddItemToProject(Project project, string currentWorkingLocation, string fileList, VSContext context, Switch options)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             if (string.IsNullOrEmpty(fileList)) return;
@@ -118,7 +118,7 @@ namespace Acklann.Powerbar
                 else WriteLine("Could not find a template for '{0}'; remember you can always create your own templates. Visit {1} for more information.", name, HELP_LINK);
 
                 string newFile = path.ExpandPath(currentWorkingLocation);
-                if (File.Exists(newFile))
+                if (File.Exists(newFile) && !options.HasFlag(Switch.Force))
                 {
                     MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Powerbar), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     VsShellUtilities.OpenDocument(this, newFile);
@@ -180,7 +180,7 @@ namespace Acklann.Powerbar
             {
                 if (location == Location.Solution) vsProject = null;// The will force files to be added to a solution folder instead of the last project.
                 ShowInfo(context);
-                AddItemToProject(vsProject, cwd, command, context);
+                AddItemToProject(vsProject, cwd, command, context, options);
             }
             else
             {

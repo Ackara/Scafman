@@ -121,7 +121,7 @@ namespace Acklann.Powerbar.MSTest.Tests
             var options = Shell.ExtractOptions(ref command);
 
             options.ShouldBe(expected);
-            command?.ShouldNotMatch(Shell.SwitchePattern.ToString());
+            command?.ShouldNotMatch(Shell.SwitchPattern.ToString());
         }
 
         private static VSContext CreateContext()

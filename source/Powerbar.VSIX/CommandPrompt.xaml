@@ -43,21 +43,18 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Column="0"
-                   Grid.Row="0">
-            <Run Text=""
-                 FontWeight="Light" />
-            <Run Text="{Binding CurrentFolder, Mode=OneWay}"
-                 FontWeight="SemiBold" />
-        </TextBlock>
+        <TextBlock Text="{Binding CurrentFolder, Mode=OneWay}"
+                   FontWeight="SemiBold"
+                   Grid.Column="0"
+                   Grid.Row="0" />
 
         <TextBox x:Name="Inputbox"
                  Text="{Binding UserInput, Mode=TwoWay}"
                  PreviewKeyDown="OnPreviewKeyDown"
                  HorizontalAlignment="Stretch"
                  VerticalAlignment="Center"
-                 FontFamily="Consolas"
                  Background="Transparent"
+                 FontFamily="Consolas"
                  Margin="4, 0, 0, 0"
                  Padding="3, 6"
                  Grid.Column="1"

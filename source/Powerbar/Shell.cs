@@ -10,7 +10,7 @@ namespace Acklann.Powerbar
 
     public class Shell
     {
-        public static readonly Regex SwitchePattern = new Regex(@"^[\|>]+", RegexOptions.Compiled);
+        public static readonly Regex SwitchPattern = new Regex(@"^[\|>]+", RegexOptions.Compiled);
 
         public static void Invoke(string location, string command, Switch options, VSContext context, Action<string> callback)
         {
@@ -35,7 +35,7 @@ namespace Acklann.Powerbar
             if (string.IsNullOrEmpty(command)) return Switch.None;
             var options = Switch.AddFile;
 
-            Match match = SwitchePattern.Match(command);
+            Match match = SwitchPattern.Match(command);
             if (match.Success)
             {
                 options = Switch.None;
