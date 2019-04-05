@@ -75,14 +75,16 @@ namespace Acklann.Powerbar
 
             var dialog = new CommandPrompt(_model);
             dialog.Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual;
-            dialog.ShowDialog();
+            bool? outcome = dialog.ShowDialog();
 
-            return (_model.UserInput ?? string.Empty).Trim();
+            if (!outcome.HasValue || !outcome.Value) return null;
+            else return (_model.UserInput ?? string.Empty).Trim();
         }
 
         private void AddItemToProject(Project project, string currentWorkingLocation, string fileList, VSContext context, Switch options)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
             if (string.IsNullOrEmpty(fileList)) return;
             if (string.IsNullOrEmpty(currentWorkingLocation)) { WriteLine("Could not determine your current location", LogLevel.Error); return; }
 

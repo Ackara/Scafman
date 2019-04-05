@@ -26,11 +26,13 @@ namespace Acklann.Powerbar
             Inputbox.Focus();
         }
 
-        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+        private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
                 case Key.Tab:
+                    _viewModel.CompleteCommand(Inputbox.Text);
+                    Inputbox.CaretIndex = Inputbox.Text.Length;
                     break;
 
                 case Key.Up:

@@ -23,7 +23,7 @@ namespace Acklann.Powerbar
             return content;
         }
 
-        public static string ExpandItemGroup(string input, string configurationFilePath)
+        public static string ExpandItemGroup(string input, string configurationFilePath, bool appendFileExtension = false)
         {
             if (string.IsNullOrEmpty(input)) return input;
             if (!File.Exists(configurationFilePath)) throw new FileNotFoundException($"Could not item-group configuration file at '{configurationFilePath}'.");
@@ -32,11 +32,11 @@ namespace Acklann.Powerbar
             {
                 var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(ItemGroup[]));
                 var groups = (ItemGroup[])serializer.ReadObject(file);
-                return ExpandItemGroup(input, groups);
+                return ExpandItemGroup(input, appendFileExtension, groups);
             }
         }
 
-        public static string ExpandItemGroup(string input, params ItemGroup[] itemGroups)
+        public static string ExpandItemGroup(string input, bool appendFileExtension, params ItemGroup[] itemGroups)
         {
             if (string.IsNullOrEmpty(input)) return input;
             var pattern = new Regex(@"@\((?<name>[a-z_0-9-]+)\)", RegexOptions.IgnoreCase);
@@ -55,16 +55,6 @@ namespace Acklann.Powerbar
             return input;
         }
 
-        public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> tokens)
-        {
-            if (string.IsNullOrEmpty(text) || tokens == null) return text;
-
-            foreach (var pair in tokens)
-                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", Environment.ExpandEnvironmentVariables(pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
-
-            return text;
-        }
-
         public static string GetSubfolder(string filePath, string projectFolder, string currentWorkingDirectory)
         {
             if (string.IsNullOrEmpty(filePath)) throw new ArgumentNullException(nameof(filePath));
@@ -74,6 +64,23 @@ namespace Acklann.Powerbar
             string absolutePath = ((Glob)filePath).ExpandPath(currentWorkingDirectory).Replace('/', '\\');
             string subfolder = Path.GetDirectoryName(absolutePath.Replace(projectFolder.Replace('/', '\\'), string.Empty)).Trim('/', '\\', ' ');
             return (subfolder.Length == absolutePath.Length ? string.Empty : subfolder);
+        }
+
+        public static string CompleteFileName(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+
+            return input;
+        }
+
+        public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> tokens)
+        {
+            if (string.IsNullOrEmpty(text) || tokens == null) return text;
+
+            foreach (var pair in tokens)
+                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", Environment.ExpandEnvironmentVariables(pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
+
+            return text;
         }
 
         public static IEnumerable<KeyValuePair<string, string>> GetReplacmentTokens()

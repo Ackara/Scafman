@@ -124,6 +124,33 @@ namespace Acklann.Powerbar.MSTest.Tests
             command?.ShouldNotMatch(Shell.SwitchPattern.ToString());
         }
 
+        [DataTestMethod]
+        [DataRow("", "")]
+        [DataRow(null, null)]
+        [DataRow("|>Get-It", "|>Get-It")]
+        [DataRow("> New-Foo", "> New-Foo")]
+        [DataRow("> new-it", "> New-Item")]
+        [DataRow("Get-Comm", "Get-Command")]
+        [DataRow("ConvertFrom-J", "ConvertFrom-Json")]
+        [DataRow("> 'foobar' | Write-H", "> 'foobar' | Write-Host")]
+        public void Can_complete_command(string input, string expectedResult)
+        {
+            var commandList = Shell.GetCommands();
+
+            var result = Shell.CompleteCommand(input, commandList);
+            if (input == null) Assert.AreEqual(input, expectedResult);
+            result.ShouldBe(expectedResult);
+        }
+
+        [TestMethod]
+        public void Can_return_available_pwsh_commands()
+        {
+            var commands = Shell.GetCommands();
+
+            commands.ShouldNotBeEmpty();
+            (new string[] { "New-Item", "ConvertFrom-Json" }).ShouldBeSubsetOf(commands);
+        }
+
         private static VSContext CreateContext()
         {
             string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Powerbar));

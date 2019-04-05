@@ -38,7 +38,8 @@ namespace Acklann.Powerbar.Tests
             var config = MockFactory.GetFile("itemgroups.json").FullName;
             var result = Template.ExpandItemGroup(input, config);
 
-            result.ShouldBe(expected);
+            if (input == null) Assert.AreEqual(result, expected);
+            else result.ShouldBe(expected);
         }
 
         [DataTestMethod]
@@ -77,6 +78,17 @@ namespace Acklann.Powerbar.Tests
             result.ShouldContain($"class Test");
             result.ShouldMatch(@"\[Guid\(""[a-z0-9-]+""\)\]");
             result.ShouldContain($"namespace {nameof(Powerbar)}");
+        }
+
+        [DataTestMethod]
+        [DataRow("", "")]
+        [DataRow(null, null)]
+        public void Can_predict_file_extension(string input, string expectedResult)
+        {
+            var result = Template.CompleteFileName(input);
+
+            if (input == null) Assert.AreEqual(result, expectedResult);
+            else result.ShouldBe(expectedResult);
         }
     }
 }

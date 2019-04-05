@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace Acklann.Powerbar.ViewModels
@@ -20,6 +19,7 @@ namespace Acklann.Powerbar.ViewModels
         public CommandPromptViewModel(string stateFilePath, int capacity = DEFAULT_CAPACITY)
         {
             _stateFilePath = stateFilePath ?? throw new ArgumentNullException(nameof(stateFilePath));
+            _commandList = Shell.GetCommands();
             _history = new string[capacity];
         }
 
@@ -35,6 +35,17 @@ namespace Acklann.Powerbar.ViewModels
             {
                 _userInput = value;
                 RaisePropertyChangedEvent(nameof(UserInput));
+            }
+        }
+
+        [XmlIgnore]
+        public string ShadowText
+        {
+            get => _shadowText;
+            set
+            {
+                _shadowText = value;
+                RaisePropertyChangedEvent(nameof(ShadowText));
             }
         }
 
@@ -116,6 +127,32 @@ namespace Acklann.Powerbar.ViewModels
             }
         }
 
+        public string CompleteCommand(string input)
+        {
+            string temp = input;
+            var options = Shell.ExtractOptions(ref temp);
+
+            if (options.HasFlag(Switch.RunCommand))
+                UserInput = Shell.CompleteCommand((input ?? _userInput), _commandList);
+            //else
+            //    UserInput = Template.CompleteFileName(input);
+
+            return _userInput;
+        }
+
+        public void Commit(string command = null)
+        {
+            if (command == null) command = _userInput;
+            _selectionIndex = -1;
+
+            if (string.IsNullOrEmpty(command)) return;
+            if (_currentIndex < 0 || command != _history[_currentIndex])
+            {
+                if ((_currentIndex + 1) >= _history.Length) _currentIndex = -1;
+                _history[++_currentIndex] = command;
+            }
+        }
+
         public string SelectPrevious()
         {
             if (_currentIndex == -1) return string.Empty;
@@ -149,19 +186,6 @@ namespace Acklann.Powerbar.ViewModels
             UserInput = string.Empty;
         }
 
-        public void Commit(string command = null)
-        {
-            if (command == null) command = _userInput;
-            _selectionIndex = -1;
-
-            if (string.IsNullOrEmpty(command)) return;
-            if (_currentIndex < 0 || command != _history[_currentIndex])
-            {
-                if ((_currentIndex + 1) >= _history.Length) _currentIndex = -1;
-                _history[++_currentIndex] = command;
-            }
-        }
-
         public void Save()
         {
             string folder = Path.GetDirectoryName(_stateFilePath);
@@ -181,12 +205,10 @@ namespace Acklann.Powerbar.ViewModels
 
         #region Private Members
 
-        private readonly string[] _history;
-        private readonly Regex _pattern = new Regex("^[|>]{1,2}", RegexOptions.Compiled);
+        private readonly string[] _history, _commandList;
 
         private bool _openInOtherWindow;
-        private string _userInput = string.Empty, _location = string.Empty, _stateFilePath;
-
+        private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _shadowText = string.Empty;
         private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _currentIndex = -1, _selectionIndex = -1;
 
         private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Powerbar), "state.xml");
