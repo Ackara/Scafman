@@ -14,6 +14,7 @@ namespace Acklann.Powerbar.Tests
         [DataRow("Person.cs", "~.cs")]
         [DataRow("package.json", null)]
         [DataRow("IAnimal.cs", "I~.cs")]
+        [DataRow("Subscriber.cs", "~.cs")]
         [DataRow("Symbol.cs", "symbol.cs")]
         [DataRow("FooTest.cs", "~Test.cs")]
         [DataRow("HomeController.cs", "~Controller.cs")]

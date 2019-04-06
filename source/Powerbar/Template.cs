@@ -186,7 +186,7 @@ namespace Acklann.Powerbar
             {
                 // TODO: Replace with GlobN
                 //Glob pattern = Path.GetFileName(path).Replace('~', '*');
-                var pattern = new Regex(Path.GetFileName(path).Replace(".", @"\.").Replace("~", ".+"), RegexOptions.IgnoreCase);
+                var pattern = new Regex($"^{Path.GetFileName(path).Replace(".", @"\.").Replace("~", ".+")}$", RegexOptions.IgnoreCase);
                 if (pattern.IsMatch(filename)) return path;
             }
 
