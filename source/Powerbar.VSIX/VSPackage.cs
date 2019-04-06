@@ -34,6 +34,7 @@ namespace Acklann.Powerbar
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var settings = (ConfigurationPage.General)GetDialogPage(typeof(ConfigurationPage.General));
+            ConfigurationPage.Load(settings);
             _model = CommandPromptViewModel.Restore();
             _console = CreateOutputWindow(Vsix.Name);
 

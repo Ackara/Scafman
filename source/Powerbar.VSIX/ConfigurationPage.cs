@@ -7,6 +7,13 @@ namespace Acklann.Powerbar
     {
         internal static string UserTemplateDirectory, UserItemGroupFile, UserRootProjectName;
 
+        internal static void Load(General config)
+        {
+            UserTemplateDirectory = config.TemplateDirectory;
+            UserItemGroupFile = config.ItemGroupsConfigurationFilePath;
+            UserRootProjectName = config.DefaultSolutionExplorerFolderName;
+        }
+
         public class General : DialogPage
         {
             [Category(nameof(General))]

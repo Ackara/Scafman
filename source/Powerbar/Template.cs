@@ -175,18 +175,19 @@ namespace Acklann.Powerbar
             filename = Path.GetFileName(filename);
 
             // Attemp #1: Checking to see if I can get an exact match first.
-            foreach (string path in templateFiles)
+            foreach (string path in templateFiles.Where(x => !x.Contains("~")))
                 if (string.Equals(filename, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
                 {
                     return path;
                 }
 
             // Attempt #2: Treating (~) as a wildcard, find the first template that best math the file name.
-            foreach (string path in templateFiles.OrderByDescending(x => x.Length))
+            foreach (string path in templateFiles.Where(x => x.Contains("~")).OrderByDescending(x => x.Length))
             {
-                // TODO: Replace DotNet.Globbing with GlobN
-                var pattern = DotNet.Globbing.Glob.Parse(Path.GetFileName(path).Replace('~', '*'));
-                if (pattern.IsMatch($"{filename}")) return path;
+                // TODO: Replace with GlobN
+                //Glob pattern = Path.GetFileName(path).Replace('~', '*');
+                var pattern = new Regex(Path.GetFileName(path).Replace(".", @"\.").Replace("~", ".+"), RegexOptions.IgnoreCase);
+                if (pattern.IsMatch(filename)) return path;
             }
 
             return null;

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
-    <PackageReference Include="DotNet.Glob" Version="3.0.1" />
   </ItemGroup>
 
 </Project>

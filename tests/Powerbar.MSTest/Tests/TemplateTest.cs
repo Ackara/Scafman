@@ -15,18 +15,21 @@ namespace Acklann.Powerbar.Tests
         [DataRow("package.json", null)]
         [DataRow("IAnimal.cs", "I~.cs")]
         [DataRow("Symbol.cs", "symbol.cs")]
+        [DataRow("FooTest.cs", "~Test.cs")]
         [DataRow("HomeController.cs", "~Controller.cs")]
         public void Can_match_filename_to_a_template(string filename, string expectedFile)
         {
             // Act
-            var filePath = Template.Find(filename, MockFactory.DirectoryName);
+            //var directory = @"C:\Users\Ackeem\OneDrive\Documents\Templates\Visual Studio\Items";
+            var directory = MockFactory.DirectoryName;
+            var filePath = Template.Find(filename, directory);
             if (expectedFile == null && filePath == null) return;
             var file = new FileInfo(filePath);
 
             // Assert
             file.Exists.ShouldBeTrue();
-            file.Name.ShouldBe(expectedFile);
-            file.DirectoryName.ShouldContain(MockFactory.DirectoryName);
+            file.DirectoryName.ShouldContain(directory);
+            file.Name.ShouldBe(expectedFile, StringCompareShould.IgnoreCase);
         }
 
         [DataTestMethod]
