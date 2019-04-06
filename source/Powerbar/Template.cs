@@ -9,6 +9,71 @@ namespace Acklann.Powerbar
 {
     public class Template
     {
+        private const string separator = ";";
+
+        public static string[] Split(string fileList)
+        {
+            if (string.IsNullOrEmpty(fileList)) return new string[0];
+
+            Group item = null;
+            string input = "";
+            var result = new List<string>();
+            var pattern = new Regex(@"\((?<item>[a-z 0-9_|.]+)\)", RegexOptions.IgnoreCase);
+            string[] list = fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < list.Length; i++)
+            {
+                item = null;
+                input = list[i];
+                while (pattern.IsMatch(input))
+                {
+                    Match match = pattern.Match(input);
+                    item = match.Groups["item"];
+                    if (item.Success)
+                    {
+                        input = input.Remove(match.Index, match.Length);
+                        input = input.Insert(match.Index, "{0}");
+
+                        foreach (string value in item.Value.Split('|'))
+                        {
+                            result.Add(string.Format(input, value.Trim()));
+                        }
+                    }
+                }
+
+                if (item == null) result.Add(input);
+            }
+            return result.ToArray();
+        }
+
+        public static string GetExtension(string projectFile, string location)
+        {
+            if (string.IsNullOrEmpty(projectFile)) return string.Empty;
+
+            if (Directory.Exists(location))
+            {
+                var extensions = (from f in Directory.EnumerateFiles(location) select Path.GetExtension(f))
+                    .Take(3)
+                    .Distinct();
+                if (extensions.Count() == 1) return extensions.First();
+            }
+
+            string extension = Path.GetExtension(projectFile).Replace("proj", "");
+            switch (extension.ToLowerInvariant())
+            {
+                case ".nj":
+                    return ".ts";
+
+                case ".ps":
+                    return ".ps1";
+
+                case ".vcx":
+                    return ".cpp";
+            }
+
+            return extension;
+        }
+
         public static string RemoveCaret(string content, out int position)
         {
             position = 0;
@@ -47,7 +112,7 @@ namespace Acklann.Powerbar
                 string key = match.Groups["name"].Value;
                 var value = (from i in itemGroups
                              where string.Equals(i.Name, key, StringComparison.OrdinalIgnoreCase)
-                             select string.Join(",", i.FileList)).FirstOrDefault();
+                             select string.Join(separator, i.FileList)).FirstOrDefault();
                 input = input.Replace(match.Value, (value ?? string.Empty));
                 match = pattern.Match(input);
             }
@@ -64,13 +129,6 @@ namespace Acklann.Powerbar
             string absolutePath = ((Glob)filePath).ExpandPath(currentWorkingDirectory).Replace('/', '\\');
             string subfolder = Path.GetDirectoryName(absolutePath.Replace(projectFolder.Replace('/', '\\'), string.Empty)).Trim('/', '\\', ' ');
             return (subfolder.Length == absolutePath.Length ? string.Empty : subfolder);
-        }
-
-        public static string CompleteFileName(string input)
-        {
-            if (string.IsNullOrEmpty(input)) return input;
-
-            return input;
         }
 
         public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> tokens)

@@ -91,7 +91,7 @@ namespace Acklann.Powerbar
             if (File.Exists(ConfigurationPage.UserItemGroupFile))
                 fileList = Template.ExpandItemGroup(fileList, ConfigurationPage.UserItemGroupFile);
 
-            foreach (Glob path in fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (Glob path in Template.Split(fileList))
             {
                 if (path.IsFolder())
                 {
@@ -173,6 +173,7 @@ namespace Acklann.Powerbar
             ThreadHelper.ThrowIfNotOnUIThread();
 
             GetContext(out VSContext context, out Project vsProject);
+            _model.Project = vsProject?.FullName;
             string cwd = context.GetLocation(location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
@@ -180,17 +181,19 @@ namespace Acklann.Powerbar
             Switch options = Shell.ExtractOptions(ref command);
             if (options.HasFlag(Switch.AddFile))
             {
-                if (location == Location.Solution) vsProject = null;// The will force files to be added to a solution folder instead of the last project.
                 ShowInfo(context);
+
+                if (location == Location.Solution) vsProject = null;// The will force files to be added to a solution folder instead of the last project.
                 AddItemToProject(vsProject, cwd, command, context, options);
             }
             else
             {
+                ShowInfo(context);
+
                 _console.Clear();
                 _console.Activate();
-                ShowInfo(context);
                 WriteLine(command + "\r\n");
-                Shell.Invoke(cwd, command, options, context, WriteLine);
+                Task.Run(() => { Shell.Invoke(cwd, command, options, context, WriteLine); ; });
             }
         }
 

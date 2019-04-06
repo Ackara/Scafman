@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,10 +30,21 @@ namespace Acklann.Powerbar.Tests
         }
 
         [DataTestMethod]
+        [DataRow("/app/person", ".cs")]
+        public void Can_guess_file_extension(string path, string expectedExtension)
+        {
+            string projectFile = Path.Combine(Path.GetTempPath(), "app.csproj");
+
+            var result = Template.GetExtension(projectFile, Path.GetTempPath());
+            if (path == null) Assert.AreEqual(result, string.Empty);
+            else result.ShouldBe(expectedExtension);
+        }
+
+        [DataTestMethod]
         [DataRow("", "")]
         [DataRow("index.cshtml", "index.cshtml")]
-        [DataRow("@(build)", "build.ps1,tasks.ps1")]
-        [DataRow("@(mvc)", "app.css,app.js,index.cshtml")]
+        [DataRow("@(build)", "build.ps1;tasks.ps1")]
+        [DataRow("@(mvc)", "app.css;app.js;index.cshtml")]
         public void Can_expand_item_groups(string input, string expected)
         {
             var config = MockFactory.GetFile("itemgroups.json").FullName;
@@ -40,6 +52,23 @@ namespace Acklann.Powerbar.Tests
 
             if (input == null) Assert.AreEqual(result, expected);
             else result.ShouldBe(expected);
+        }
+
+        [DataTestMethod]
+        [DataRow("", "")]
+        [DataRow(null, null)]
+        [DataRow("index.cshtml", "index.cshtml")]
+        [DataRow("app.css,app.js", "app.css;app.js")]
+        [DataRow("script.(ts|js)", "script.ts;script.js")]
+        [DataRow("index.html;app.(ts|js)", "index.html;app.ts;app.js")]
+        [DataRow("../css/(button.css|table.css)", "../css/button.css;../css/table.css")]
+        [DataRow("wwwroot/img/(mobile|desktop)/wallpaper.jpg", "wwwroot/img/mobile/wallpaper.jpg;wwwroot/img/desktop/wallpaper.jpg")]
+        public void Can_split_inline_group(string input, string expected)
+        {
+            var result = Template.Split(input);
+
+            if (input == null) result.ShouldBeEmpty();
+            else result.ShouldBe(expected.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         [DataTestMethod]
@@ -78,17 +107,6 @@ namespace Acklann.Powerbar.Tests
             result.ShouldContain($"class Test");
             result.ShouldMatch(@"\[Guid\(""[a-z0-9-]+""\)\]");
             result.ShouldContain($"namespace {nameof(Powerbar)}");
-        }
-
-        [DataTestMethod]
-        [DataRow("", "")]
-        [DataRow(null, null)]
-        public void Can_predict_file_extension(string input, string expectedResult)
-        {
-            var result = Template.CompleteFileName(input);
-
-            if (input == null) Assert.AreEqual(result, expectedResult);
-            else result.ShouldBe(expectedResult);
         }
     }
 }

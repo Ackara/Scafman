@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Acklann.Powerbar
 {
-    //https://stackoverflow.com/questions/25772622/how-do-i-echo-into-an-existing-cmd-window
-
     public class Shell
     {
         public static readonly Regex SwitchPattern = new Regex(@"^[\|>]+", RegexOptions.Compiled);
@@ -101,15 +98,6 @@ namespace Acklann.Powerbar
             return commands.ToArray();
         }
 
-        private static string GetMSBuildPath()
-        {
-            return (from folder in Directory.EnumerateDirectories(@"C:\Windows\Microsoft.NET\Framework\")
-                    orderby folder descending
-                    let file = Path.Combine(folder, "MSBuild.exe")
-                    where File.Exists(file)
-                    select folder).FirstOrDefault();
-        }
-
         private static string Escape(string command)
         {
             return command.Replace("\"", "\"\"\"")
@@ -119,23 +107,14 @@ namespace Acklann.Powerbar
 
         private static ProcessStartInfo CreateProcessInfo(string location, Switch options, VSContext context)
         {
-            bool openingWindow = options.HasFlag(Switch.RunCommandInWindow);
-
             var info = new ProcessStartInfo("powershell")
             {
-                //LoadUserProfile = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
                 WorkingDirectory = location,
-                CreateNoWindow = !openingWindow,
-                UseShellExecute = openingWindow,
-                RedirectStandardError = !openingWindow,
-                RedirectStandardOutput = !openingWindow,
             };
-
-            if (!openingWindow)
-            {
-                string msbuild = GetMSBuildPath();
-                if (!string.IsNullOrEmpty(msbuild)) info.EnvironmentVariables["PATH"] = (msbuild + ';' + info.EnvironmentVariables["PATH"]);
-            }
 
             return info;
         }

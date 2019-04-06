@@ -39,13 +39,13 @@ namespace Acklann.Powerbar.ViewModels
         }
 
         [XmlIgnore]
-        public string ShadowText
+        public string Project
         {
-            get => _shadowText;
+            get => _project;
             set
             {
-                _shadowText = value;
-                RaisePropertyChangedEvent(nameof(ShadowText));
+                _project = value;
+                RaisePropertyChangedEvent(nameof(Project));
             }
         }
 
@@ -129,13 +129,15 @@ namespace Acklann.Powerbar.ViewModels
 
         public string CompleteCommand(string input)
         {
+            if (input == null) input = _userInput;
+
             string temp = input;
             var options = Shell.ExtractOptions(ref temp);
 
             if (options.HasFlag(Switch.RunCommand))
-                UserInput = Shell.CompleteCommand((input ?? _userInput), _commandList);
-            //else
-            //    UserInput = Template.CompleteFileName(input);
+                UserInput = Shell.CompleteCommand(input, _commandList);
+            else if (options.HasFlag(Switch.AddFile))
+                UserInput = (!Path.HasExtension(input) ? (input + Template.GetExtension(_project, _location)) : input);
 
             return _userInput;
         }
@@ -208,7 +210,7 @@ namespace Acklann.Powerbar.ViewModels
         private readonly string[] _history, _commandList;
 
         private bool _openInOtherWindow;
-        private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _shadowText = string.Empty;
+        private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _project = string.Empty;
         private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _currentIndex = -1, _selectionIndex = -1;
 
         private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Powerbar), "state.xml");
