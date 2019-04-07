@@ -64,7 +64,7 @@ namespace Acklann.Powerbar
                 case ".nj":
                     return ".ts";
 
-                case ".ps":
+                case ".pss":
                     return ".ps1";
 
                 case ".vcx":

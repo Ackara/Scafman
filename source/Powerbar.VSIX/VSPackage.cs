@@ -116,6 +116,7 @@ namespace Acklann.Powerbar
                     _tokens.Upsert("rootnamespace", $"{context.RootNamespace}.{ns}".TrimEnd('.'));
                     _tokens.Upsert("itemname", Path.GetFileNameWithoutExtension(name).SafeName());
                     _tokens.Upsert("safeitemname", Path.GetFileNameWithoutExtension(name).SafeName());
+                    _tokens.Upsert("solutionname", Path.GetFileNameWithoutExtension(_dte.Solution?.FileName ?? string.Empty).SafeName());
                     template = Template.Replace(File.ReadAllText(templatePath), _tokens);
                 }
                 else WriteLine("Could not find a template for '{0}'; remember you can always create your own templates. Visit {1} for more information.", name, HELP_LINK);
