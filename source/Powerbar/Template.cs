@@ -162,7 +162,7 @@ namespace Acklann.Powerbar
             foreach (string folder in templateDirectories)
                 if (Directory.Exists(folder))
                 {
-                    templatePath = Find(Directory.GetFiles(folder), filename);
+                    templatePath = Find(Directory.GetFiles(folder, "*", SearchOption.AllDirectories), filename);
                     if (!string.IsNullOrEmpty(templatePath)) return templatePath;
                 }
 

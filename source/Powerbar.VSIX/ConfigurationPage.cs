@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel;
 
 namespace Acklann.Powerbar
@@ -9,9 +10,9 @@ namespace Acklann.Powerbar
 
         internal static void Load(General config)
         {
-            UserTemplateDirectory = config.TemplateDirectory;
-            UserItemGroupFile = config.ItemGroupsConfigurationFilePath;
             UserRootProjectName = config.DefaultSolutionExplorerFolderName;
+            UserTemplateDirectory = Environment.ExpandEnvironmentVariables(config.TemplateDirectory ?? string.Empty);
+            UserItemGroupFile = Environment.ExpandEnvironmentVariables(config.ItemGroupsConfigurationFilePath ?? string.Empty);
         }
 
         public class General : DialogPage
@@ -34,9 +35,9 @@ namespace Acklann.Powerbar
             public override void LoadSettingsFromStorage()
             {
                 base.LoadSettingsFromStorage();
-                UserTemplateDirectory = TemplateDirectory;
-                UserItemGroupFile = ItemGroupsConfigurationFilePath;
                 UserRootProjectName = DefaultSolutionExplorerFolderName;
+                UserTemplateDirectory = Environment.ExpandEnvironmentVariables(TemplateDirectory ?? string.Empty);
+                UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
             }
 
             public override void SaveSettingsToStorage()

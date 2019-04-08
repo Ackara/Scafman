@@ -21,7 +21,6 @@ namespace Acklann.Powerbar.Tests
         public void Can_match_filename_to_a_template(string filename, string expectedFile)
         {
             // Act
-            //var directory = @"C:\Users\Ackeem\OneDrive\Documents\Templates\Visual Studio\Items";
             var directory = MockFactory.DirectoryName;
             var filePath = Template.Find(filename, directory);
             if (expectedFile == null && filePath == null) return;
