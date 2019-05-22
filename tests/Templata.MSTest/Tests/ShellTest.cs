@@ -1,10 +1,9 @@
-﻿using Acklann.Powerbar.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System.IO;
 using System.Text;
 
-namespace Acklann.Powerbar.MSTest.Tests
+namespace Acklann.Templata.MSTest.Tests
 {
     [TestClass]
     public class ShellTest
@@ -56,52 +55,6 @@ namespace Acklann.Powerbar.MSTest.Tests
             results.ToString().ShouldNotContain("error", Case.Insensitive);
         }
 
-        [TestMethod]
-        public void Can_cycle_through_command_history()
-        {
-            // Arrange
-            var sample = new string[] { "a", "b", "c" };
-            var sut = new CommandPromptViewModel(sample.Length + 1);
-
-            // Act + Assert
-            sut.SelectNext();
-            sut.SelectPrevious();
-
-            foreach (var command in sample)
-            {
-                sut.UserInput = command;
-                sut.Commit();
-            }
-
-            /// Senario (End of the line): cycle through the entire history.
-            sut.SelectPrevious();
-            sut.UserInput.ShouldBe("c");
-
-            sut.SelectPrevious().ShouldBe("b");
-
-            sut.SelectNext().ShouldBe("c");
-
-            sut.SelectPrevious().ShouldBe("b");
-            sut.SelectPrevious().ShouldBe("a");
-            sut.SelectPrevious().ShouldBe("a");
-
-            /// Senario (Loopback & Replace): when the array is full start replacing values from the top.
-            sut.UserInput = "d";
-            sut.Commit(); // [ a, b, c, d]
-
-            sut.SelectNext();
-            sut.UserInput.ShouldBe("d");
-
-            sut.SelectPrevious().ShouldBe("c");
-            sut.SelectPrevious().ShouldBe("b");
-            sut.SelectPrevious().ShouldBe("a");
-            sut.SelectPrevious().ShouldBe("a");
-
-            sut.SelectNext().ShouldBe("b");
-            sut.SelectNext().ShouldBe("c");
-            sut.SelectNext().ShouldBe("d");
-        }
-
         [DataTestMethod]
         [DataRow("", (Switch.None))]
         [DataRow(null, (Switch.None))]
@@ -151,15 +104,61 @@ namespace Acklann.Powerbar.MSTest.Tests
             (new string[] { "New-Item", "ConvertFrom-Json" }).ShouldBeSubsetOf(commands);
         }
 
+        //[TestMethod]
+        //public void Can_cycle_through_command_history()
+        //{
+        //    // Arrange
+        //    var sample = new string[] { "a", "b", "c" };
+        //    var sut = new CommandPromptViewModel(sample.Length + 1);
+
+        //    // Act + Assert
+        //    sut.SelectNext();
+        //    sut.SelectPrevious();
+
+        //    foreach (var command in sample)
+        //    {
+        //        sut.UserInput = command;
+        //        sut.Commit();
+        //    }
+
+        //    /// Senario (End of the line): cycle through the entire history.
+        //    sut.SelectPrevious();
+        //    sut.UserInput.ShouldBe("c");
+
+        //    sut.SelectPrevious().ShouldBe("b");
+
+        //    sut.SelectNext().ShouldBe("c");
+
+        //    sut.SelectPrevious().ShouldBe("b");
+        //    sut.SelectPrevious().ShouldBe("a");
+        //    sut.SelectPrevious().ShouldBe("a");
+
+        //    /// Senario (Loopback & Replace): when the array is full start replacing values from the top.
+        //    sut.UserInput = "d";
+        //    sut.Commit(); // [ a, b, c, d]
+
+        //    sut.SelectNext();
+        //    sut.UserInput.ShouldBe("d");
+
+        //    sut.SelectPrevious().ShouldBe("c");
+        //    sut.SelectPrevious().ShouldBe("b");
+        //    sut.SelectPrevious().ShouldBe("a");
+        //    sut.SelectPrevious().ShouldBe("a");
+
+        //    sut.SelectNext().ShouldBe("b");
+        //    sut.SelectNext().ShouldBe("c");
+        //    sut.SelectNext().ShouldBe("d");
+        //}
+
         private static VSContext CreateContext()
         {
-            string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Powerbar));
+            string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Templata));
             string sln = Path.Combine(rootFolder, "example.sln");
             string proj = Path.Combine(rootFolder, "example/example.proj");
             string item = Path.Combine(rootFolder, "example/Class1.cs");
             var selection = new string[] { item };
 
-            return new VSContext(sln, proj, item, selection, nameof(Powerbar), nameof(Acklann), "0.0.1");
+            return new VSContext(sln, proj, item, selection, nameof(Templata), nameof(Acklann), "0.0.1");
         }
     }
 }

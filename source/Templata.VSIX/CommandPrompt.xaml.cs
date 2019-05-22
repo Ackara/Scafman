@@ -1,12 +1,9 @@
-﻿using Acklann.Powerbar.ViewModels;
+﻿using Acklann.Templata.ViewModels;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
-    /// <summary>
-    /// Interaction logic for CommandPrompt.xaml
-    /// </summary>
     public partial class CommandPrompt : Window
     {
         public CommandPrompt(CommandPromptViewModel context = null)

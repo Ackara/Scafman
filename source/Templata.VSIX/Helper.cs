@@ -14,11 +14,24 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     internal static class Helper
     {
         private static readonly Regex _illegalChars = new Regex(@"[^a-z_0-9]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        public static void AddFolder(this Project project, string folder)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (project == null) throw new ArgumentNullException(nameof(project));
+            if (string.IsNullOrEmpty(folder)) throw new ArgumentNullException(nameof(folder));
+
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            string tempFile = Path.Combine(folder, "__temp__");
+            var temp = project.ProjectItems.AddFromFile(tempFile);
+            
+            temp?.Delete();
+        }
 
         public static void GetProjectInfo(this DTE2 dte, out string project, out string projectItem, out string[] itemsSelected, out string rootNamespace, out string assemblyName, out string version, out EnvDTE.Project vsProject)
         {
@@ -230,7 +243,7 @@ namespace Acklann.Powerbar
         #endregion P/Invoke
 
         /**
-         * List of possible [EnvDTE.Projecty].Properties
+         * List of possible [EnvDTE.Project].Properties
          * --------------------------------------------
          *
          * OutputType = 2

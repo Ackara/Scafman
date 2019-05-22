@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     public class ConfigurationPage
     {

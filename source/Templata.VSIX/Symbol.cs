@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
 	public static class Symbol
 	{

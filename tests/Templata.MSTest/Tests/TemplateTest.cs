@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Acklann.Powerbar.Tests
+namespace Acklann.Templata.Tests
 {
     [TestClass]
     public class TemplateTest
@@ -64,6 +64,7 @@ namespace Acklann.Powerbar.Tests
         [DataRow("app.css,app.js", "app.css;app.js")]
         [DataRow("script.(ts|js)", "script.ts;script.js")]
         [DataRow("index.html;app.(ts|js)", "index.html;app.ts;app.js")]
+        [DataRow("Tests/(Unit|Functional)/", "Tests/Unit/;Tests/Functional/")]
         [DataRow("../css/(button.css|table.css)", "../css/button.css;../css/table.css")]
         [DataRow("wwwroot/img/(mobile|desktop)/wallpaper.jpg", "wwwroot/img/mobile/wallpaper.jpg;wwwroot/img/desktop/wallpaper.jpg")]
         public void Can_split_inline_group(string input, string expected)
@@ -81,8 +82,8 @@ namespace Acklann.Powerbar.Tests
         [DataRow(".\\viewModel\\person.cs", "Models\\viewModel")]
         public void Can_determine_a_project_subfolder(string relativePath, string expected)
         {
-            var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Powerbar), "src", "Foo");
-            var location = Path.Combine(Path.GetTempPath(), nameof(Powerbar), "src", "Foo", "Models");
+            var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Templata), "src", "Foo");
+            var location = Path.Combine(Path.GetTempPath(), nameof(Templata), "src", "Foo", "Models");
 
             var result = Template.GetSubfolder(relativePath, projectFolder, location);
             result.ShouldBe(expected, StringCompareShould.IgnoreCase);
@@ -95,7 +96,7 @@ namespace Acklann.Powerbar.Tests
             IEnumerable<KeyValuePair<string, string>> tokens = new Dictionary<string, string>()
             {
                  {"safeitemname", "Test" },
-                 {"rootnamespace", nameof(Powerbar) },
+                 {"rootnamespace", nameof(Templata) },
                  {"guid", "abc-def" },
             };
             tokens = Enumerable.Concat(tokens, Template.GetReplacmentTokens()).ToArray();
@@ -109,7 +110,7 @@ namespace Acklann.Powerbar.Tests
             result.ShouldNotBeNullOrEmpty();
             result.ShouldContain($"class Test");
             result.ShouldMatch(@"\[Guid\(""[a-z0-9-]+""\)\]");
-            result.ShouldContain($"namespace {nameof(Powerbar)}");
+            result.ShouldContain($"namespace {nameof(Templata)}");
         }
     }
 }

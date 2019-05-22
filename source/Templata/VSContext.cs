@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     public struct VSContext
     {

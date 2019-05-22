@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay()}")]
     public struct ItemGroup

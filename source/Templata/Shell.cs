@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     public class Shell
     {

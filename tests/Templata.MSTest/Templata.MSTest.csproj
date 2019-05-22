@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <RootNamespace>Acklann.Powerbar.MSTest</RootNamespace>
+    <RootNamespace>Acklann.Templata</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup Label="mock-data">
@@ -27,6 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\source\Powerbar\Powerbar.csproj" />
+    <ProjectReference Include="..\..\source\Templata\Templata.csproj" />
   </ItemGroup>
 </Project>

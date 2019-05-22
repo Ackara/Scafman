@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
 
-namespace Acklann.Powerbar.ViewModels
+namespace Acklann.Templata.ViewModels
 {
-    [XmlRoot(nameof(Powerbar))]
+    [XmlRoot(nameof(Templata))]
     public class CommandPromptViewModel : INotifyPropertyChanged
     {
         public CommandPromptViewModel() : this(GetDefaultFilePath(), DEFAULT_CAPACITY)
@@ -213,7 +213,7 @@ namespace Acklann.Powerbar.ViewModels
         private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _project = string.Empty;
         private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _currentIndex = -1, _selectionIndex = -1;
 
-        private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Powerbar), "state.xml");
+        private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Templata), "state.xml");
 
         #endregion Private Members
     }

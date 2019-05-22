@@ -1,5 +1,6 @@
 ﻿using Acklann.GlobN;
-using Acklann.Powerbar.ViewModels;
+using Acklann.Templata.ViewModels;
+using Acklann.Templata;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft;
@@ -17,7 +18,7 @@ using System.Windows.Forms;
 using System.Windows.Interop;
 using Task = System.Threading.Tasks.Task;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     [Guid(Symbol.Package.GuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
@@ -100,7 +101,7 @@ namespace Acklann.Powerbar
                     if (!Directory.Exists(folder))
                     {
                         if (project == null) _dte.Solution.AddFolder(Path.GetFileName(folder));
-                        else project?.ProjectItems.AddFromDirectory(folder);
+                        else project?.AddFolder(folder);
                     }
                     continue;
                 }
@@ -124,7 +125,7 @@ namespace Acklann.Powerbar
                 string newFile = path.ExpandPath(currentWorkingLocation);
                 if (File.Exists(newFile) && !options.HasFlag(Switch.Force))
                 {
-                    MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Powerbar), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Templata), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     VsShellUtilities.OpenDocument(this, newFile);
                 }
                 else
@@ -214,7 +215,7 @@ namespace Acklann.Powerbar
             _console.OutputStringThreadSafe(message + "\r\n");
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 #if DEBUG
-            System.Diagnostics.Debug.WriteLine($"{nameof(Powerbar)}> {message}");
+            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)}> {message}");
 #endif
         }
 
@@ -222,7 +223,7 @@ namespace Acklann.Powerbar
 
         private void WriteLine(string format, params object[] args) => WriteLine(string.Format(format, args));
 
-        private IVsOutputWindowPane CreateOutputWindow(string title = nameof(Powerbar))
+        private IVsOutputWindowPane CreateOutputWindow(string title = nameof(Templata))
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     [Flags]
     public enum Switch

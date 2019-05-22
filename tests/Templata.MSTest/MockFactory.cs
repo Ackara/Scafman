@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace Acklann.Powerbar
+namespace Acklann.Templata
 {
     public static class MockFactory
     {

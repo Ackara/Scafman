@@ -24,8 +24,8 @@
     <ProjectGuid>{FEB31E1B-30B9-40B2-BCAC-EE90024B6152}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Acklann.Powerbar</RootNamespace>
-    <AssemblyName>Powerbar.VSIX</AssemblyName>
+    <RootNamespace>Acklann.Templata</RootNamespace>
+    <AssemblyName>Templata.VSIX</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -74,6 +74,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Templates\i~.cs" />
+    <Compile Include="ViewModels\CommandPromptViewModel.cs" />
     <Compile Include="VSPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -84,12 +85,6 @@
       <Generator>VsixManifestGenerator</Generator>
       <LastGenOutput>source.extension.resx</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Powerbar\Powerbar.csproj">
-      <Project>{afd6e520-eb87-4b64-b7cf-f3888721fcd0}</Project>
-      <Name>Powerbar</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.VisualStudio.SDK.Analyzers.15.8.36\analyzers\cs\Microsoft.VisualStudio.SDK.Analyzers.dll" />
@@ -234,6 +229,12 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Symbol.cs</LastGenOutput>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Templata\Templata.csproj">
+      <Project>{afd6e520-eb87-4b64-b7cf-f3888721fcd0}</Project>
+      <Name>Templata</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="CommandPrompt.xaml">
