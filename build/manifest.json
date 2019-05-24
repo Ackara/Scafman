@@ -1,23 +1,21 @@
 ﻿{
-  "name": "Powerbar",
-  "author": "Ackara",
-  "company": "Tecari",
-  "copyright": "Copyright © 2019, Tecari",
-  "website": "",
-  "license": null,
-  "repository": null,
-  "icon": null,
-  "tags": "new file powershell command",
-  "releaseNotes": null,
-  "version":
-  {
-    "major": 0,
-    "minor": 0,
-    "patch": 1
-  },
-  "branchSuffixMap":
-  {
-    "master": "",
-    "*": "rc"
-  }
+    "name":  "Powerbar",
+    "author":  "Ackara",
+    "company":  "Tecari",
+    "copyright":  "Copyright © 2019, Tecari",
+    "website":  "",
+    "license":  null,
+    "repository":  null,
+    "icon":  null,
+    "tags":  "new file powershell command",
+    "releaseNotes":  null,
+    "version":  {
+                    "major":  0,
+                    "minor":  0,
+                    "patch":  2
+                },
+    "branchSuffixMap":  {
+                            "master":  "",
+                            "*":  "rc"
+                        }
 }

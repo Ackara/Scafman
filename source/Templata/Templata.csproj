@@ -1,13 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Acklann.Templata</RootNamespace>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <Copyright>Copyright © 2019, Tecari</Copyright>
+    <Company>Tecari</Company>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
+    <Authors>Ackara</Authors>
+    <PackageTags>new file powershell command</PackageTags>
+    <PackageVersion>0.0.2</PackageVersion>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
   </ItemGroup>
-
 </Project>
