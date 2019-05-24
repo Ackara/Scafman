@@ -1,6 +1,4 @@
-﻿using Acklann.GlobN;
-using EnvDTE;
-using EnvDTE80;
+﻿using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -18,29 +16,14 @@ namespace Acklann.Templata
 {
     internal static class Helper
     {
-        private static readonly Regex _illegalChars = new Regex(@"[^a-z_0-9]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-        public static void AddFolder(this Project project, string folder)
+        public static void GetContext(DTE2 dte, out EnvDTE.Project project, out ProjectContext context)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            if (project == null) throw new ArgumentNullException(nameof(project));
-            if (string.IsNullOrEmpty(folder)) throw new ArgumentNullException(nameof(folder));
-
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-            string tempFile = Path.Combine(folder, "__temp__");
-            var temp = project.ProjectItems.AddFromFile(tempFile);
-            
-            temp?.Delete();
-        }
-
-        public static void GetProjectInfo(this DTE2 dte, out string project, out string projectItem, out string[] itemsSelected, out string rootNamespace, out string assemblyName, out string version, out EnvDTE.Project vsProject)
-        {
             if (dte == null) throw new ArgumentNullException(nameof(dte));
-            ThreadHelper.ThrowIfNotOnUIThread();
 
-            vsProject = null;
+            project = null;
             var selection = new List<string>();
-            project = projectItem = rootNamespace = assemblyName = version = string.Empty;
+            string projectPath = null, projectItemPath = null, rootNamespace = null, assemblyName = null, version = null;
 
             // Capturing all of the items currently selected by the user.
             EnvDTE.SelectedItems selectedItems = dte.SelectedItems;
@@ -52,34 +35,35 @@ namespace Acklann.Templata
                         selection.Add(item.ProjectItem.FileNames[0]);
                         if (!string.IsNullOrEmpty(item?.ProjectItem?.ContainingProject?.FullName))
                         {
-                            vsProject = item.ProjectItem.ContainingProject;
-                            project = item.ProjectItem.ContainingProject.FullName;
+                            project = item.ProjectItem.ContainingProject;
+                            projectPath = item.ProjectItem.ContainingProject.FullName;
                         }
                     }
                     else if (!string.IsNullOrEmpty(item?.Project?.FullName))
                     {
-                        vsProject = item.Project;
-                        project = item.Project.FullName;
+                        project = item.Project;
+                        projectPath = item.Project.FullName;
                         selection.Add(item.Project.FullName);
                     }
 
-                projectItem = selection.LastOrDefault();
+                projectItemPath = selection.LastOrDefault();
             }
 
-            itemsSelected = selection.ToArray();
-            vsProject?.GetTokens(out rootNamespace, out assemblyName, out version);
+            if (project != null)
+            {
+                rootNamespace = TryGetProperty(project, "RootNamespace");
+                assemblyName = TryGetProperty(project, "AssemblyName");
+                version = TryGetProperty(project, "Version");
+            }
+
+            context = new ProjectContext(
+                dte.Solution.FullName,
+                projectPath, projectItemPath, selection.ToArray(),
+                rootNamespace, assemblyName, version
+                );
         }
 
-        public static void GetTokens(this EnvDTE.Project project, out string rootnamespace, out string assemblyName, out string version)
-        {
-            if (project == null) throw new ArgumentNullException(nameof(project));
-
-            rootnamespace = project.TryGetProperty("RootNamespace");
-            assemblyName = project.TryGetProperty("AssemblyName");
-            version = project.TryGetProperty("Version");
-        }
-
-        public static string GetLocation(this VSContext context, Location location)
+        public static string GetLocation(ProjectContext context, Location location)
         {
             switch (location)
             {
@@ -101,52 +85,7 @@ namespace Acklann.Templata
             }
         }
 
-        public static IDictionary<string, string> Upsert(this IDictionary<string, string> map, VSContext context)
-        {
-            // Visual Studio Tokens: https://docs.microsoft.com/en-us/visualstudio/ide/template-parameters?view=vs-2015#reserved-template-parameters
-
-            string solutionName = SafeName(Path.GetFileNameWithoutExtension(context.SolutionFilePath));
-            string projectName = SafeName(Path.GetFileNameWithoutExtension(context.ProjectFilePath));
-            var tokens = new (string, string)[]
-            {
-                ("rootnamespace", context.RootNamespace), ("namespace", context.RootNamespace),
-                ("SpecificSolutionName", solutionName), ("solutionname", solutionName),
-                ("projectname", projectName), ("safeprojectname", projectName),
-                ("assembly", context.Assemblyname),
-                ("version", context.Version),
-            };
-
-            foreach (var (key, value) in tokens)
-            {
-                if (map.ContainsKey(key)) map[key] = value;
-                else map.Add(key, value);
-            }
-            return map;
-        }
-
-        public static IDictionary<string, string> Upsert(this IDictionary<string, string> map, string key, string value)
-        {
-            if (string.IsNullOrEmpty(key)) return map;
-            if (map.ContainsKey(key)) map[key] = value;
-            else map.Add(key, value);
-            return map;
-        }
-
-        public static string SafeName(this string name)
-        {
-            if (string.IsNullOrEmpty(name)) return name;
-            else return _illegalChars.Replace(name, string.Empty);
-        }
-
-        public static bool IsFolder(this string path)
-        {
-            if (string.IsNullOrEmpty(path)) return false;
-            else return (path.EndsWith("/") || path.EndsWith("\\"));
-        }
-
-        public static bool IsFolder(this Glob path) => IsFolder(path.ToString());
-
-        public static string TryGetProperty(this EnvDTE.Project project, string name)
+        public static string TryGetProperty(EnvDTE.Project project, string name)
         {
             Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             try
@@ -185,7 +124,13 @@ namespace Acklann.Templata
             }
         }
 
-        public static string Format(this LogLevel level, string message)
+        public static bool CheckIfEndsWithExtension(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            else return Regex.IsMatch(path, @"\.[a-z0-9]+$", RegexOptions.IgnoreCase);
+        }
+
+        public static string Format(LogLevel level, string message)
         {
             if (string.IsNullOrEmpty(message)) return string.Empty;
             else switch (level)
@@ -200,26 +145,6 @@ namespace Acklann.Templata
                     case LogLevel.Error:
                         return $"ERROR: {message}";
                 }
-        }
-
-        public static EnvDTE.Project AddFolder(this EnvDTE.Solution solution, string name)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-
-            var sln = (solution as Solution2);
-            if (sln != null)
-            {
-                foreach (Project project in sln.Projects)
-                    if (project.Name == name)
-                    {
-                        return project;
-                    }
-
-                return sln.AddSolutionFolder(name);
-            }
-
-            return null;
         }
 
         #region P/Invoke

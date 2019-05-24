@@ -3,37 +3,127 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:vm="clr-namespace:Acklann.Templata.ViewModels"
+        xmlns:vm="clr-namespace:Acklann.Templata.Models"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Acklann.Templata"
         WindowStartupLocation="Manual"
+        WindowStyle="ToolWindow"
         ShowInTaskbar="False"
-        MinHeight="100"
-        Height="100"
-        Width="{Binding Width, Mode=TwoWay}"
+        SizeToContent="WidthAndHeight"
         Top="{Binding Top, Mode=TwoWay}"
         Left="{Binding Left, Mode=TwoWay}"
+        Width="{Binding Width, Mode=TwoWay}"
         Loaded="OnLoaded"
         SourceInitialized="OnSourceInitialized"
         mc:Ignorable="d">
     <d:Window.DataContext>
         <vm:CommandPromptViewModel UserInput="| New-Template @(mvc)"
                                    Location="C:\Users\David\Projects\Powerbar\source\Powerbar.VSIX"
-                                   Width="500" />
+                                   Width="500">
+            <vm:CommandPromptViewModel.Options>
+                <vm:SearchItem Title="build"
+                               ToolTip="build.ps1 | task.psake.ps1"
+                               IsSelected="True"
+                               Command="" />
+
+                <vm:SearchItem Title="css"
+                               ToolTip="_layout.scss | _reset.scss"
+                               IsSelected="False"
+                               Command="" />
+
+                <vm:SearchItem Title="long"
+                               ToolTip="_layout.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss"
+                               IsSelected="False"
+                               Command="" />
+            </vm:CommandPromptViewModel.Options>
+        </vm:CommandPromptViewModel>
     </d:Window.DataContext>
     <Window.Resources>
         <ResourceDictionary>
+            <!--
+            vs-dark-color-bg: #FF252526
+            vs-dark-color-text-panel: #FF3F3F46
+
+            -->
+            <Thickness x:Key="t100">6,3</Thickness>
+
+            <Style x:Key="SearchItem"
+                   TargetType="StackPanel">
+                <Setter Property="Width"
+                        Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},Path=ActualWidth}" />
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSelected}"
+                                 Value="True">
+                        <Setter Property="Background"
+                                Value="#BF007ACC" />
+
+                        <Setter Property="Orientation"
+                                Value="Vertical" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
             <Style TargetType="TextBlock">
                 <Setter Property="VerticalAlignment"
                         Value="Center" />
 
                 <Setter Property="HorizontalAlignment"
                         Value="Stretch" />
+
+                <Setter Property="Padding"
+                        Value="{StaticResource t100}" />
+            </Style>
+
+            <Style x:Key="IntellisenceTitle"
+                   TargetType="TextBlock">
+                <Setter Property="Padding"
+                        Value="{StaticResource t100}" />
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSelected}"
+                                 Value="True">
+                        <Setter Property="Foreground"
+                                Value="White" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="IntellisenceTooltip"
+                   TargetType="TextBlock">
+                <Setter Property="Padding"
+                        Value="{StaticResource t100}" />
+
+                <Setter Property="Foreground"
+                        Value="Gray" />
+
+                <Setter Property="TextWrapping"
+                        Value="Wrap" />
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSelected}"
+                                 Value="True">
+                        <Setter Property="Foreground"
+                                Value="LightGray" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="ListViewItem">
+                <Setter Property="BorderThickness"
+                        Value="0" />
+
+                <Setter Property="Margin"
+                        Value="0" />
+
+                <Setter Property="Padding"
+                        Value="0" />
             </Style>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid Margin="12, 6">
+    <Grid Margin="0,3">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -51,6 +141,7 @@
         <TextBox x:Name="Inputbox"
                  Text="{Binding UserInput, Mode=TwoWay}"
                  PreviewKeyUp="OnPreviewKeyUp"
+                 PreviewKeyDown="PreviewKeyDown"
                  HorizontalAlignment="Stretch"
                  VerticalAlignment="Center"
                  Background="Transparent"
@@ -67,5 +158,26 @@
             <Run Text="Location: " />
             <Run Text="{Binding Location}" />
         </TextBlock>
+
+        <ListView ItemsSource="{Binding Options}"
+                  SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                  KeyboardNavigation.TabNavigation="None"
+                  Background="WhiteSmoke"
+                  BorderThickness="0"
+                  Grid.Row="2"
+                  Grid.ColumnSpan="2">
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:SearchItem}">
+                    <StackPanel Style="{StaticResource SearchItem}">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource IntellisenceTitle}" />
+
+                        <TextBlock Text="{Binding ToolTip}"
+                                   Style="{StaticResource IntellisenceTooltip}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Window>

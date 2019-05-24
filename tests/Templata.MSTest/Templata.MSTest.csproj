@@ -8,14 +8,6 @@
     <RootNamespace>Acklann.Templata</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup Label="mock-data">
-    <Compile Remove="mock-data\*.cs" />
-
-    <None Include="mock-data\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Acklann.Diffa" Version="1.0.3" />
     <PackageReference Include="FakeItEasy" Version="5.1.0" />
@@ -28,5 +20,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\source\Templata\Templata.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="mock-data">
+    <None Include="samples\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

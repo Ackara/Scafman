@@ -1,11 +1,13 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel;
+using System.IO;
 
 namespace Acklann.Templata
 {
     public class ConfigurationPage
     {
+        internal static bool TemplateDirectoryExists, UserItemGroupFileExists;
         internal static string UserTemplateDirectory, UserItemGroupFile, UserRootProjectName;
 
         internal static void Load(General config)
@@ -38,6 +40,9 @@ namespace Acklann.Templata
                 UserRootProjectName = DefaultSolutionExplorerFolderName;
                 UserTemplateDirectory = Environment.ExpandEnvironmentVariables(TemplateDirectory ?? string.Empty);
                 UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
+
+                UserItemGroupFileExists = File.Exists(UserItemGroupFile);
+                TemplateDirectoryExists = File.Exists(UserTemplateDirectory);
             }
 
             public override void SaveSettingsToStorage()

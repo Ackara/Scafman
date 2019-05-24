@@ -7,9 +7,9 @@ namespace Acklann.Templata
     {
         None = 0,
         AddFile = 1,
-        RunCommand = 2,
-        PipeContext = 4,
-        RunCommandInWindow = 8,
-        Force = 16
+        AddFolder = 2,
+        Rename = 4,
+        NugetPackage = 8,
+        NPMPackage = 16
     }
 }

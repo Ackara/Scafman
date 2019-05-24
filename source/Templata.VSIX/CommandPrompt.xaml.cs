@@ -1,4 +1,4 @@
-﻿using Acklann.Templata.ViewModels;
+﻿using Acklann.Templata.Models;
 using System.Windows;
 using System.Windows.Input;
 
@@ -9,14 +9,15 @@ namespace Acklann.Templata
         public CommandPrompt(CommandPromptViewModel context = null)
         {
             InitializeComponent();
-            if (context != null) DataContext = _viewModel = context;
+            if (context != null) DataContext = _model = context;
 
             Title = Vsix.Name;
-            SizeToContent = (_viewModel.Width <= CommandPromptViewModel.MINIMUM_WIDTH ? SizeToContent.Width : SizeToContent.Manual);
-            WindowStartupLocation = (_viewModel.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
+            SizeToContent = (_model.Width <= CommandPromptViewModel.MINIMUM_WIDTH ? SizeToContent.WidthAndHeight : SizeToContent.Height);
+            WindowStartupLocation = (_model.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }
 
-        private readonly CommandPromptViewModel _viewModel;
+        private readonly CommandPromptViewModel _model;
+        private KeyEventArgs _shiftKey;
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -25,19 +26,34 @@ namespace Acklann.Templata
 
         private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
+            //System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | pressed: {e.Key}, text: {Inputbox.Text}");
+
             switch (e.Key)
             {
-                case Key.Tab:
-                    _viewModel.CompleteCommand(Inputbox.Text);
-                    Inputbox.CaretIndex = Inputbox.Text.Length;
+                default:
+                    _model.UpdateIntellisense(Inputbox.Text ?? _model.UserInput);
+                    break;
+
+                case Key.D2:// '@' symbol
+                    if (_shiftKey.IsDown) _model.Change(SearchContext.ItemGroup);
+                    break;
+
+                case Key.OemSemicolon: // ')' key
+                    if (_shiftKey.IsDown) _model.Change(SearchContext.NuGet | SearchContext.NPM);
+                    else _model.Change(SearchContext.None);
                     break;
 
                 case Key.Up:
-                    _viewModel.SelectPrevious();
+                    _model.MoveUp();
                     break;
 
                 case Key.Down:
-                    _viewModel.SelectNext();
+                    _model.MoveDown();
+                    break;
+
+                case Key.Tab:
+                    _model.CompleteCommand(Inputbox.Text ?? _model.UserInput);
+                    Inputbox.CaretIndex = Inputbox.Text.Length;
                     break;
 
                 case Key.Escape:
@@ -46,8 +62,26 @@ namespace Acklann.Templata
 
                 case Key.Enter:
                     DialogResult = true;
-                    _viewModel.Commit();
                     Close();
+                    break;
+
+                case Key.D0:
+                    if (_shiftKey.IsDown) _model.Change(SearchContext.None);
+                    break;
+
+                case Key.OemComma:
+                    _model.Change(SearchContext.None);
+                    break;
+            }
+        }
+
+        private new void PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.LeftShift:
+                case Key.RightShift:
+                    _shiftKey = e;
                     break;
             }
         }

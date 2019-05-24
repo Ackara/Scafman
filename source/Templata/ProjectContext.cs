@@ -2,9 +2,9 @@
 
 namespace Acklann.Templata
 {
-    public struct VSContext
+    public readonly struct ProjectContext
     {
-        public VSContext(string solution, string project, string item, string[] selectedItems, string ns, string assemblyName, string version)
+        public ProjectContext(string solution, string project, string item, string[] selectedItems, string ns, string assemblyName, string version)
         {
             SelectedItems = selectedItems;
             SolutionFilePath = solution;

@@ -11,17 +11,17 @@ namespace Acklann.Templata.Tests
     public class TemplateTest
     {
         [DataTestMethod]
-        [DataRow("Person.cs", "~.cs")]
+        [DataRow("Person.cst", "~.cst")]
         [DataRow("package.json", null)]
-        [DataRow("IAnimal.cs", "I~.cs")]
-        [DataRow("Subscriber.cs", "~.cs")]
-        [DataRow("Symbol.cs", "symbol.cs")]
-        [DataRow("FooTest.cs", "~Test.cs")]
-        [DataRow("HomeController.cs", "~Controller.cs")]
+        [DataRow("IAnimal.cst", "I~.cst")]
+        [DataRow("Subscriber.cst", "~.cst")]
+        [DataRow("Symbol.cst", "symbol.cst")]
+        [DataRow("FooTest.cst", "~Test.cst")]
+        [DataRow("HomeController.cst", "~Controller.cst")]
         public void Can_match_filename_to_a_template(string filename, string expectedFile)
         {
             // Act
-            var directory = MockFactory.DirectoryName;
+            var directory = SampleFactory.DirectoryName;
             var filePath = Template.Find(filename, directory);
             if (expectedFile == null && filePath == null) return;
             var file = new FileInfo(filePath);
@@ -34,11 +34,12 @@ namespace Acklann.Templata.Tests
 
         [DataTestMethod]
         [DataRow("/app/person", ".cs")]
+        [DataRow("foo.cs > bar", ".cs")]
         public void Can_guess_file_extension(string path, string expectedExtension)
         {
             string projectFile = Path.Combine(Path.GetTempPath(), "app.csproj");
 
-            var result = Template.GetExtension(projectFile, Path.GetTempPath());
+            var result = Template.GuessExtension(projectFile, Path.GetTempPath());
             if (path == null) Assert.AreEqual(result, string.Empty);
             else result.ShouldBe(expectedExtension);
         }
@@ -50,7 +51,7 @@ namespace Acklann.Templata.Tests
         [DataRow("@(mvc)", "app.css;app.js;index.cshtml")]
         public void Can_expand_item_groups(string input, string expected)
         {
-            var config = MockFactory.GetFile("itemgroups.json").FullName;
+            var config = SampleFactory.GetFile("itemgroups.json").FullName;
             var result = Template.ExpandItemGroup(input, config);
 
             if (input == null) Assert.AreEqual(result, expected);
@@ -78,8 +79,8 @@ namespace Acklann.Templata.Tests
         [DataTestMethod]
         [DataRow("../person.cs", "")]
         [DataRow("person.cs", "Models")]
-        [DataRow("viewModel/person.cs", "Models\\viewModel")]
-        [DataRow(".\\viewModel\\person.cs", "Models\\viewModel")]
+        [DataRow("viewModel/person.cs", @"Models\viewModel")]
+        [DataRow(@".\viewModel\person.cs", @"Models\viewModel")]
         public void Can_determine_a_project_subfolder(string relativePath, string expected)
         {
             var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Templata), "src", "Foo");
@@ -90,27 +91,71 @@ namespace Acklann.Templata.Tests
         }
 
         [TestMethod]
-        public void Can_replace_tokens_with_real_values()
+        public void Can_replace_template_tokens()
         {
             // Arrange
-            IEnumerable<KeyValuePair<string, string>> tokens = new Dictionary<string, string>()
-            {
-                 {"safeitemname", "Test" },
-                 {"rootnamespace", nameof(Templata) },
-                 {"guid", "abc-def" },
-            };
-            tokens = Enumerable.Concat(tokens, Template.GetReplacmentTokens()).ToArray();
+            var text = File.ReadAllText(SampleFactory.GetFile("~Controller.cst").FullName);
+            var baseFolder = Path.Combine(Path.GetTempPath(), nameof(Templata));
+            var outFile = Path.Combine(baseFolder, "src", "Core", "Models", "Person.cs");
 
-            var content = File.ReadAllText(MockFactory.GetFile("~Controller.cs").FullName);
+            var context = new ProjectContext(
+                Path.Combine(baseFolder, "Sample.sln"),
+                Path.Combine(baseFolder, "src", "Core", "Core.csproj"),
+                outFile,
+                new string[] { },
+                $"{nameof(Templata)}.Web",
+                nameof(Templata),
+                "0.0.1"
+                );
 
             // Act
-            var result = Template.Replace(content, tokens);
+            string case1 = Template.Replace(text, context, Path.GetDirectoryName(outFile), outFile);
+
+            text = File.ReadAllText(SampleFactory.GetFile("script.ts").FullName);
+            string case2 = Template.Replace(text, context, Path.GetDirectoryName(outFile), outFile);
 
             // Assert
-            result.ShouldNotBeNullOrEmpty();
-            result.ShouldContain($"class Test");
-            result.ShouldMatch(@"\[Guid\(""[a-z0-9-]+""\)\]");
-            result.ShouldContain($"namespace {nameof(Templata)}");
+            case1.ShouldNotBeNullOrEmpty();
+            case1.ShouldNotContain("$guid$");
+            case1.ShouldNotContain("$safeitemname$");
+            case1.ShouldNotContain("$rootnamespace$");
+
+            case2.ShouldNotContain("$projectrelativepath$");
+            case2.StartsWith("../index.d.ts");
+        }
+
+        [TestMethod]
+        [DataRow("", "", Switch.None)]
+        [DataRow(null, "", Switch.None)]
+        [DataRow("file.cs", "file.cs", Switch.AddFile)]
+        [DataRow("folder/", "folder/", Switch.AddFolder)]
+        [DataRow(":dapper", "dapper", Switch.NugetPackage)]
+        [DataRow("npm:knockout", "knockout", Switch.NPMPackage)]
+        [DataRow("folder/sub/", "folder/sub/", Switch.AddFolder)]
+        public void Can_convert_string_to_command(string input, string expectedInput, Switch expectedOption)
+        {
+            // Act + Assert
+            var case1 = Command.Parse(input);
+            case1.Input.ShouldBe(expectedInput);
+            case1.Kind.ShouldBe(expectedOption);
+        }
+
+        [DataTestMethod]
+        [DynamicData(nameof(GetInput), DynamicDataSourceType.Method)]
+        public void Can_separate_files_and_packages(string input, Command[] expected)
+        {
+            var results = Template.Interpret(input).ToArray();
+            results.ShouldBeSubsetOf(expected);
+        }
+
+        private static IEnumerable<object[]> GetInput()
+        {
+            yield return new object[] { null, new Command[0] };
+            yield return new object[] { string.Empty, new Command[0] };
+            yield return new object[] { "app.ts", new Command[] { "app.ts" } };
+            yield return new object[] { "app.ts,npm:chartjs", new Command[] { "app.ts", "npm:chartjs" } };
+            yield return new object[] { "npm:(chartjs|knockout)", new Command[] { "npm:chartjs", "npm:knockout" } };
+            yield return new object[] { "(person|animal)Suite.cs,:FakeItEasy,:Diffa", new Command[] { "personSuite.cs", "animalSuite.cs", "nuget:FakeItEasy", "nuget:Diffa" } };
         }
     }
 }

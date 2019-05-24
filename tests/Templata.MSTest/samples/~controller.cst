@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace $rootnamespace$
 {
-    [Guid("{guid}")]
+    [Guid("$guid$")]
     public class $safeitemname$ : Controller
     {
         public void Index()

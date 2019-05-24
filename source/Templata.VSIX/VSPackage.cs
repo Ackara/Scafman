@@ -1,20 +1,18 @@
 ﻿using Acklann.GlobN;
-using Acklann.Templata.ViewModels;
-using Acklann.Templata;
+using Acklann.Templata.Models;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using NuGet.VisualStudio;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows.Forms;
 using System.Windows.Interop;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,6 +27,7 @@ namespace Acklann.Templata
     public sealed class VSPackage : AsyncPackage
     {
         private const string HELP_LINK = "http://gigobyte.com";
+        //var defaultBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -36,10 +35,11 @@ namespace Acklann.Templata
 
             var settings = (ConfigurationPage.General)GetDialogPage(typeof(ConfigurationPage.General));
             ConfigurationPage.Load(settings);
-            _model = CommandPromptViewModel.Restore();
-            _console = CreateOutputWindow(Vsix.Name);
 
             _dte = (await GetServiceAsync(typeof(DTE)) as DTE2);
+            _model = await CommandPromptViewModel.RestoreAsync();
+
+            _console = CreateOutputWindow(Vsix.Name);
             Assumes.Present(_dte);
 
             var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
@@ -58,21 +58,11 @@ namespace Acklann.Templata
             base.Dispose(disposing);
         }
 
-        private void GetContext(out VSContext context, out Project vsProject)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            _dte.GetProjectInfo(out string project, out string projectItem, out string[] selectedItems, out string ns, out string assemblyName, out string version, out vsProject);
-
-            context = new VSContext(
-                _dte.Solution.FullName, project, projectItem, selectedItems,
-                ns, assemblyName, version);
-        }
-
         private string PromptUser(string location)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            _model.Clear();
+            _model.Reset();
             _model.Location = location;
 
             var dialog = new CommandPrompt(_model);
@@ -81,72 +71,6 @@ namespace Acklann.Templata
 
             if (!outcome.HasValue || !outcome.Value) return null;
             else return (_model.UserInput ?? string.Empty).Trim();
-        }
-
-        private void AddItemToProject(Project project, string currentWorkingLocation, string fileList, VSContext context, Switch options)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (string.IsNullOrEmpty(fileList)) return;
-            if (string.IsNullOrEmpty(currentWorkingLocation)) { WriteLine("Could not determine your current location", LogLevel.Error); return; }
-
-            if (File.Exists(ConfigurationPage.UserItemGroupFile))
-                fileList = Template.ExpandItemGroup(fileList, ConfigurationPage.UserItemGroupFile);
-
-            foreach (Glob path in Template.Split(fileList))
-            {
-                if (path.IsFolder())
-                {
-                    string folder = path.ExpandPath(currentWorkingLocation);
-                    if (!Directory.Exists(folder))
-                    {
-                        if (project == null) _dte.Solution.AddFolder(Path.GetFileName(folder));
-                        else project?.AddFolder(folder);
-                    }
-                    continue;
-                }
-
-                // Locate then create a file template.
-                string template = string.Empty;
-                string name = Path.GetFileName(path);
-                string templatePath = Template.Find(name, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
-                if (File.Exists(templatePath))
-                {
-                    string ns = Template.GetSubfolder(path, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingLocation).Replace('\\', '.').Replace('/', '.');
-                    _tokens.Upsert(context);
-                    _tokens.Upsert("rootnamespace", $"{context.RootNamespace}.{ns}".TrimEnd('.'));
-                    _tokens.Upsert("itemname", Path.GetFileNameWithoutExtension(name).SafeName());
-                    _tokens.Upsert("safeitemname", Path.GetFileNameWithoutExtension(name).SafeName());
-                    _tokens.Upsert("solutionname", Path.GetFileNameWithoutExtension(_dte.Solution?.FileName ?? string.Empty).SafeName());
-                    template = Template.Replace(File.ReadAllText(templatePath), _tokens);
-                }
-                else WriteLine("Could not find a template for '{0}'; remember you can always create your own templates. Visit {1} for more information.", name, HELP_LINK);
-
-                string newFile = path.ExpandPath(currentWorkingLocation);
-                if (File.Exists(newFile) && !options.HasFlag(Switch.Force))
-                {
-                    MessageBox.Show(string.Format("{0} file already exists.", name), nameof(Templata), MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    VsShellUtilities.OpenDocument(this, newFile);
-                }
-                else
-                {
-                    // Write file contents to disk.
-                    string folder = Path.GetDirectoryName(newFile);
-                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                    template = Template.RemoveCaret(template, out int cursorPosition);
-                    File.WriteAllText(newFile, template);
-
-                    // Add file to Solution Explorer.
-                    if (project == null) project = _dte.Solution.AddFolder(string.IsNullOrEmpty(folder) ? ConfigurationPage.UserRootProjectName : Path.GetFileName(folder));
-                    project?.ProjectItems.AddFromFile(newFile);
-                    VsShellUtilities.OpenDocument(this, newFile);
-
-                    // Move the text cursor into position.
-                    Helper.MoveActiveDocumentCursorTo(cursorPosition);
-                    _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
-                    _dte.ActiveDocument.Activate();
-                }
-            }
         }
 
         // ==================== Command Handlers ==================== //
@@ -175,53 +99,62 @@ namespace Acklann.Templata
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            GetContext(out VSContext context, out Project vsProject);
-            _model.Project = vsProject?.FullName;
-            string cwd = context.GetLocation(location);
+            Helper.GetContext(_dte, out Project project, out ProjectContext context);
+            _model.Project = project?.FullName;
+            string cwd = Helper.GetLocation(context, location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
+            ShowInfo(context);
 
-            Switch options = Shell.ExtractOptions(ref command);
-            if (options.HasFlag(Switch.AddFile))
+            if (location == Location.Solution) project = null;// The should force files to be added to a solution folder instead of the last selected project.
+
+            if (File.Exists(ConfigurationPage.UserItemGroupFile))
+                command = Template.ExpandItemGroup(command, ConfigurationPage.UserItemGroupFile);
+
+            IVsPackageInstaller installer = null; IComponentModel componentModel = null; IVsPackageInstallerServices nuget = null;
+
+            foreach (Command item in Template.Interpret(command))
             {
-                ShowInfo(context);
+                switch (item.Kind)
+                {
+                    case Switch.AddFolder:
+                        project.AddFolder(item.Input.ExpandPath(cwd));
+                        break;
 
-                if (location == Location.Solution) vsProject = null;// The will force files to be added to a solution folder instead of the last project.
-                AddItemToProject(vsProject, cwd, command, context, options);
-            }
-            else
-            {
-                ShowInfo(context);
+                    case Switch.AddFile:
+                        (string filePath, int position) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
+                        if (File.Exists(filePath))
+                        {
+                            VsShellUtilities.OpenDocument(this, filePath);
+                            Helper.MoveActiveDocumentCursorTo(position);
+                            _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
+                            _dte.ActiveDocument.Activate();
+                        }
+                        break;
 
-                _console.Clear();
-                _console.Activate();
-                WriteLine(command + "\r\n");
-                Task.Run(() => { Shell.Invoke(cwd, command, options, context, WriteLine); ; });
+                    case Switch.NugetPackage:
+                        if (project == null) break;
+                        if (componentModel == null) componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+                        if (nuget == null) nuget = componentModel.GetService<IVsPackageInstallerServices>();
+                        if (installer == null) installer = componentModel.GetService<IVsPackageInstaller>();
+
+                        project.InstallNuGetPackage(item.Input, nuget, installer, _dte.StatusBar);
+                        break;
+
+                    case Switch.NPMPackage:
+                        if (project == null) break;
+                        break;
+                }
             }
         }
 
         #region Private Members
 
-        private readonly IDictionary<string, string> _tokens = Template.GetReplacmentTokens().ToDictionary(x => x.Key, x => x.Value);
         private readonly string _builtinTemplateDirectory = Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates");
 
         private DTE2 _dte;
         private IVsOutputWindowPane _console;
         private CommandPromptViewModel _model;
-
-        private void WriteLine(string message)
-        {
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-            _console.OutputStringThreadSafe(message + "\r\n");
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-#if DEBUG
-            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)}> {message}");
-#endif
-        }
-
-        private void WriteLine(string message, LogLevel level) => WriteLine(level.Format(message));
-
-        private void WriteLine(string format, params object[] args) => WriteLine(string.Format(format, args));
 
         private IVsOutputWindowPane CreateOutputWindow(string title = nameof(Templata))
         {
@@ -239,7 +172,21 @@ namespace Acklann.Templata
             return null;
         }
 
-        private void ShowInfo(VSContext context)
+        private void WriteLine(string message)
+        {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
+            _console.OutputStringThreadSafe(message + "\r\n");
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)}> {message}");
+#endif
+        }
+
+        private void WriteLine(string message, LogLevel level) => WriteLine(Helper.Format(level, message));
+
+        private void WriteLine(string format, params object[] args) => WriteLine(string.Format(format, args));
+
+        private void ShowInfo(ProjectContext context)
         {
 #if DEBUG
             WriteLine($"solution: {context.SolutionFilePath}");

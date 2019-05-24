@@ -10,12 +10,12 @@ namespace Acklann.Templata
     {
         public static readonly Regex SwitchPattern = new Regex(@"^[\|>]+", RegexOptions.Compiled);
 
-        public static void Invoke(string location, string command, Switch options, VSContext context, Action<string> callback)
+        public static void Invoke(string location, string command, Switch options, ProjectContext context, Action<string> callback)
         {
             if (string.IsNullOrEmpty(command)) return;
 
             void dataHandler(object sender, DataReceivedEventArgs e) { callback?.Invoke(e.Data); }
-            using (var exe = new Process { StartInfo = CreateProcessInfo(location, options, context) })
+            using (var exe = new Process { StartInfo = CreateProcessInfo(location, context) })
             {
                 exe.ErrorDataReceived += dataHandler;
                 exe.OutputDataReceived += dataHandler;
@@ -29,13 +29,9 @@ namespace Acklann.Templata
             }
         }
 
-        public static string GetArguments(string command, Switch options, VSContext context)
+        public static string GetArguments(string command, Switch options, ProjectContext context)
         {
-            string noExit = (options.HasFlag(Switch.RunCommandInWindow) ? "-NoExit " : string.Empty);
-            string pipelineObject = (options.HasFlag(Switch.PipeContext) ?
-                $"{context} | ConvertFrom-Json | " : string.Empty);
-
-            return $"{noExit}-ExecutionPolicy Bypass -NonInteractive -Command \"{Escape(pipelineObject)}{Escape(command)}\"";
+            return $"-ExecutionPolicy Bypass -NonInteractive -NoProfile -Command \"{Escape(command)}\"";
         }
 
         public static string CompleteCommand(string input, in string[] commandList)
@@ -50,36 +46,15 @@ namespace Acklann.Templata
             return string.Join(" ", args);
         }
 
-        public static Switch ExtractOptions(ref string command)
-        {
-            if (string.IsNullOrEmpty(command)) return Switch.None;
-            var options = Switch.AddFile;
-
-            Match match = SwitchPattern.Match(command);
-            if (match.Success)
-            {
-                options = Switch.None;
-
-                if (match.Value.Contains('>')) options |= (Switch.RunCommand);
-                if (match.Value.Contains(">>")) options |= (Switch.RunCommandInWindow);
-
-                if (match.Value.Contains('|')) options |= (Switch.RunCommand | Switch.PipeContext);
-                if (match.Value.Contains("||")) options |= Switch.RunCommandInWindow;
-            }
-
-            command = command.TrimStart('|', '>', ' ');
-            return options;
-        }
-
         public static string[] GetCommands()
         {
             var commands = new List<string>();
             var pattern = new Regex("^[a-z0-9]+-?[a-z0-9]+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            var args = CreateProcessInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), Switch.None, new VSContext());
+            var args = CreateProcessInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), new ProjectContext());
             using (var exe = new Process() { StartInfo = args })
             {
-                exe.StartInfo.Arguments = GetArguments("Get-Command | select Name", Switch.None, new VSContext());
+                exe.StartInfo.Arguments = GetArguments("Get-Command | select Name", Switch.None, new ProjectContext());
                 exe.Start();
 
                 if (exe.StandardOutput != null)
@@ -105,7 +80,7 @@ namespace Acklann.Templata
                           .Trim();
         }
 
-        private static ProcessStartInfo CreateProcessInfo(string location, Switch options, VSContext context)
+        private static ProcessStartInfo CreateProcessInfo(string location, ProjectContext context)
         {
             var info = new ProcessStartInfo("powershell")
             {

@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.IO;
+using System.Runtime.Serialization;
 
 namespace Acklann.Templata
 {
@@ -10,6 +11,17 @@ namespace Acklann.Templata
 
         [DataMember(Name = "fileList")]
         public string[] FileList { get; set; }
+
+        public static ItemGroup[] ReadFile(string filePath)
+        {
+            if (!File.Exists(filePath)) throw new FileNotFoundException($"Could not find item-group configuraiton file at '{filePath}'.");
+
+            using (Stream file = File.OpenRead(filePath))
+            {
+                var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(ItemGroup[]));
+                return (ItemGroup[])serializer.ReadObject(file);
+            }
+        }
 
         internal string GetDebuggerDisplay()
         {

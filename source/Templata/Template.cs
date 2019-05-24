@@ -15,41 +15,45 @@ namespace Acklann.Templata
         {
             if (string.IsNullOrEmpty(fileList)) return new string[0];
 
-            Group item = null;
+            Group group = null;
             string input = "";
             var result = new List<string>();
-            var pattern = new Regex(@"\((?<item>[a-z 0-9_|.]+)\)", RegexOptions.IgnoreCase);
+            var pattern = new Regex(@"\((?<item>[^\)]+)\)", RegexOptions.IgnoreCase);
             string[] list = fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < list.Length; i++)
             {
-                item = null;
+                group = null;
                 input = list[i];
                 while (pattern.IsMatch(input))
                 {
                     Match match = pattern.Match(input);
-                    item = match.Groups["item"];
-                    if (item.Success)
+                    group = match.Groups["item"];
+                    if (group.Success)
                     {
                         input = input.Remove(match.Index, match.Length);
                         input = input.Insert(match.Index, "{0}");
 
-                        foreach (string value in item.Value.Split('|'))
+                        foreach (string value in group.Value.Split('|'))
                         {
                             result.Add(string.Format(input, value.Trim()));
                         }
                     }
                 }
 
-                if (item == null) result.Add(input);
+                if (group == null) result.Add(input);
             }
             return result.ToArray();
         }
 
-        public static string GetExtension(string projectFile, string location)
+        public static IEnumerable<Command> Interpret(string input)
         {
-            if (string.IsNullOrEmpty(projectFile)) return string.Empty;
+            if (string.IsNullOrEmpty(input)) yield break;
+            foreach (string item in Split(input)) yield return Command.Parse(item);
+        }
 
+        public static string GuessExtension(string projectFile, string location)
+        {
             if (Directory.Exists(location))
             {
                 var extensions = (from f in Directory.EnumerateFiles(location) select Path.GetExtension(f))
@@ -58,20 +62,18 @@ namespace Acklann.Templata
                 if (extensions.Count() == 1) return extensions.First();
             }
 
-            string extension = Path.GetExtension(projectFile).Replace("proj", "");
-            switch (extension.ToLowerInvariant())
+            if (string.IsNullOrEmpty(projectFile)) return string.Empty;
+            else
             {
-                case ".nj":
-                    return ".ts";
-
-                case ".pss":
-                    return ".ps1";
-
-                case ".vcx":
-                    return ".cpp";
+                string extension = Path.GetExtension(projectFile).Replace("proj", string.Empty).ToLowerInvariant();
+                switch (extension)
+                {
+                    case ".nj": return ".ts";
+                    case ".pss": return ".ps1";
+                    case ".vcx": return ".cpp";
+                    default: return extension;
+                }
             }
-
-            return extension;
         }
 
         public static string RemoveCaret(string content, out int position)
@@ -88,20 +90,13 @@ namespace Acklann.Templata
             return content;
         }
 
-        public static string ExpandItemGroup(string input, string configurationFilePath, bool appendFileExtension = false)
+        public static string ExpandItemGroup(string input, string configurationFilePath)
         {
             if (string.IsNullOrEmpty(input)) return input;
-            if (!File.Exists(configurationFilePath)) throw new FileNotFoundException($"Could not item-group configuration file at '{configurationFilePath}'.");
-
-            using (Stream file = File.OpenRead(configurationFilePath))
-            {
-                var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(ItemGroup[]));
-                var groups = (ItemGroup[])serializer.ReadObject(file);
-                return ExpandItemGroup(input, appendFileExtension, groups);
-            }
+            return ExpandItemGroup(input, ItemGroup.ReadFile(configurationFilePath));
         }
 
-        public static string ExpandItemGroup(string input, bool appendFileExtension, params ItemGroup[] itemGroups)
+        public static string ExpandItemGroup(string input, params ItemGroup[] itemGroups)
         {
             if (string.IsNullOrEmpty(input)) return input;
             var pattern = new Regex(@"@\((?<name>[a-z_0-9-]+)\)", RegexOptions.IgnoreCase);
@@ -122,47 +117,97 @@ namespace Acklann.Templata
 
         public static string GetSubfolder(string filePath, string projectFolder, string currentWorkingDirectory)
         {
-            if (string.IsNullOrEmpty(filePath)) throw new ArgumentNullException(nameof(filePath));
-            if (string.IsNullOrEmpty(projectFolder)) throw new ArgumentNullException(nameof(projectFolder));
-            if (string.IsNullOrEmpty(currentWorkingDirectory)) throw new ArgumentNullException(nameof(currentWorkingDirectory));
+            if (string.IsNullOrEmpty(filePath)) return string.Empty;
+            if (string.IsNullOrEmpty(projectFolder)) return string.Empty;
+            if (string.IsNullOrEmpty(currentWorkingDirectory)) return string.Empty;
 
             string absolutePath = ((Glob)filePath).ExpandPath(currentWorkingDirectory).Replace('/', '\\');
             string subfolder = Path.GetDirectoryName(absolutePath.Replace(projectFolder.Replace('/', '\\'), string.Empty)).Trim('/', '\\', ' ');
             return (subfolder.Length == absolutePath.Length ? string.Empty : subfolder);
         }
 
-        public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> tokens)
+        public static string Replace(string text, params (string, string)[] replacementTokens)
         {
-            if (string.IsNullOrEmpty(text) || tokens == null) return text;
+            if (string.IsNullOrEmpty(text) || replacementTokens?.Length < 1) return text;
 
-            foreach (var pair in tokens)
-                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", Environment.ExpandEnvironmentVariables(pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
+            foreach ((string token, string value) in replacementTokens)
+            {
+                text = Regex.Replace(text, $@"\${token}\$", value, RegexOptions.IgnoreCase);
+            }
 
             return text;
         }
 
-        public static IEnumerable<KeyValuePair<string, string>> GetReplacmentTokens()
+        public static string Replace(string text, IEnumerable<KeyValuePair<string, string>> replacementTokens)
+        {
+            if (string.IsNullOrEmpty(text) || replacementTokens == null) return text;
+
+            foreach (var pair in replacementTokens)
+            {
+                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", (pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
+            }
+
+            return text;
+        }
+
+        public static string Replace(string text, ProjectContext context, string currentWorkingDirectory = null, string outputFilePath = null)
         {
             // Visual Studio Tokens: https://docs.microsoft.com/en-us/visualstudio/ide/template-parameters?view=vs-2019#reserved-template-parameters
 
-            var time = DateTime.Now;
-            return new KeyValuePair<string, string>[]
+            if (string.IsNullOrEmpty(text)) return text;
+
+            var illegalPattern = new Regex(@"[^a-z_0-9]+", RegexOptions.IgnoreCase);
+            string safe(string x) => illegalPattern.Replace(x, string.Empty);
+            string repl(string k, string v) => (string.IsNullOrEmpty(v) ? text : text.Replace(k, v));
+            string subFolder = GetSubfolder(outputFilePath, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingDirectory);
+
+            foreach (Match match in Regex.Matches(text, @"\$(?<token>[^\$]+)\$", RegexOptions.IgnoreCase))
             {
-                new KeyValuePair<string, string>("year", $"{time.Year}"),
-                new KeyValuePair<string, string>("time", $"{time:YYYY-MM-DD}"),
-                new KeyValuePair<string, string>("guid", $"{Guid.NewGuid()}"),
-            };
+                string token = match.Value;
+                switch (match.Groups["token"].Value.ToLowerInvariant())
+                {
+                    case "username": text = repl(token, Environment.ExpandEnvironmentVariables("%USERNAME%")); break;
+                    case "userdomain": text = repl(token, Environment.ExpandEnvironmentVariables("%USERDOMAIN%")); break;
+                    case "machinename": text = repl(token, Environment.ExpandEnvironmentVariables("%COMPUTERNAME%")); break;
+
+                    case "version": text = repl(token, context.Version); break;
+                    case "assemblyname": text = repl(token, context.Assemblyname); break;
+
+                    case "namespace": text = repl(token, context.RootNamespace); break;
+                    case "rootnamespace": text = repl(token, ToNamespace(context.RootNamespace, subFolder)); break;
+                    case "projectname": text = repl(token, Path.GetFileNameWithoutExtension(context.ProjectFilePath)); break;
+                    case "safeprojectname": text = repl(token, safe(Path.GetFileNameWithoutExtension(context.ProjectFilePath))); break;
+
+                    case "subfolder": text = repl(token, subFolder); break;
+                    case "projectrelativepath": text = repl(token, ToUpDirectoryTokens(subFolder)); break;
+                    case "foldername": text = repl(token, Path.GetFileName(Path.GetDirectoryName(outputFilePath))); break;
+
+                    case "filename": text = repl(token, Path.GetFileName(outputFilePath)); break;
+                    case "itemname": text = repl(token, Path.GetFileNameWithoutExtension(outputFilePath)); break;
+                    case "safeitemname": text = repl(token, safe(Path.GetFileNameWithoutExtension(outputFilePath))); break;
+
+                    case "time": text = repl(token, DateTime.Now.ToString()); break;
+                    case "year": text = repl(token, DateTime.Now.Year.ToString()); break;
+
+                    case "guid": text = repl(token, Guid.NewGuid().ToString()); break;
+
+                    case "solutionname":
+                    case "specificsolutionname": text = repl(token, safe(Path.GetFileNameWithoutExtension(context.SolutionFilePath))); break;
+                }
+            }
+
+            return text;
         }
 
-        public static string Find(string filename, params string[] templateDirectories)
+        public static string Find(string fileName, params string[] templateDirectories)
         {
-            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+            if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
 
             string templatePath;
             foreach (string folder in templateDirectories)
                 if (Directory.Exists(folder))
                 {
-                    templatePath = Find(Directory.GetFiles(folder, "*", SearchOption.AllDirectories), filename);
+                    templatePath = Find(Directory.GetFiles(folder, "*", SearchOption.AllDirectories), fileName);
                     if (!string.IsNullOrEmpty(templatePath)) return templatePath;
                 }
 
@@ -191,6 +236,20 @@ namespace Acklann.Templata
             }
 
             return null;
+        }
+
+        internal static string ToUpDirectoryTokens(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return string.Empty;
+
+            int depth = path.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            return string.Join("/", Enumerable.Repeat("..", depth));
+        }
+
+        internal static string ToNamespace(string rootNamespace, string path)
+        {
+            if (string.IsNullOrEmpty(path)) return rootNamespace;
+            else return string.Join(".", rootNamespace, string.Join(".", path.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))).Trim('.', ' ');
         }
     }
 }
