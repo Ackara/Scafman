@@ -73,6 +73,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Symbol.tt</DependentUpon>
     </Compile>
+    <Content Include="Resources\Template.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="source.extension.ico">
+      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+    </Content>
     <Content Include="Templates\~.cs">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

@@ -7,9 +7,9 @@ namespace Acklann.Templata
 {
     static class Vsix
     {
-        public const string Id = "Powerbar.VSIX.30e24548-472a-4281-8f38-939c982ab484";
-        public const string Name = "Powerbar";
-        public const string Description = @"Empty VSIX Project.";
+        public const string Id = "3c078121-2119-42af-9055-50abb4af5afe";
+        public const string Name = "Template Express";
+        public const string Description = @"A user file template system.";
         public const string Language = "en-US";
         public const string Version = "0.0.1";
         public const string Author = "Ackara";
