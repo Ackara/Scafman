@@ -109,10 +109,10 @@ namespace Acklann.Templata.Tests
                 );
 
             // Act
-            string case1 = Template.Replace(text, context, Path.GetDirectoryName(outFile), outFile);
+            string case1 = Template.Replace(text, context, outFile, Path.GetDirectoryName(outFile));
 
             text = File.ReadAllText(SampleFactory.GetFile("script.ts").FullName);
-            string case2 = Template.Replace(text, context, Path.GetDirectoryName(outFile), outFile);
+            string case2 = Template.Replace(text, context, outFile, Path.GetDirectoryName(outFile));
 
             // Assert
             case1.ShouldNotBeNullOrEmpty();

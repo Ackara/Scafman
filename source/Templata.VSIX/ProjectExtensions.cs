@@ -62,7 +62,7 @@ namespace Acklann.Templata
             templatePath = Template.Find(Path.GetFileName(templatePath), templateDirectories);
             if (File.Exists(templatePath))
             {
-                fileContent = Template.Replace(File.ReadAllText(templatePath), context, cwd, outFile);
+                fileContent = Template.Replace(File.ReadAllText(templatePath), context, outFile, cwd);
                 fileContent = Template.RemoveCaret(fileContent, out position);
             }
 

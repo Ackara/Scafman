@@ -56,7 +56,7 @@ namespace Acklann.Templata
         {
             if (Directory.Exists(location))
             {
-                var extensions = (from f in Directory.EnumerateFiles(location) select Path.GetExtension(f))
+                var extensions = (from x in Directory.EnumerateFiles(location) select Path.GetExtension(x))
                     .Take(3)
                     .Distinct();
                 if (extensions.Count() == 1) return extensions.First();
@@ -150,7 +150,7 @@ namespace Acklann.Templata
             return text;
         }
 
-        public static string Replace(string text, ProjectContext context, string currentWorkingDirectory = null, string outputFilePath = null)
+        public static string Replace(string text, ProjectContext context, string outputFilePath, string currentWorkingDirectory = null)
         {
             // Visual Studio Tokens: https://docs.microsoft.com/en-us/visualstudio/ide/template-parameters?view=vs-2019#reserved-template-parameters
 
@@ -159,6 +159,7 @@ namespace Acklann.Templata
             var illegalPattern = new Regex(@"[^a-z_0-9]+", RegexOptions.IgnoreCase);
             string safe(string x) => illegalPattern.Replace(x, string.Empty);
             string repl(string k, string v) => (string.IsNullOrEmpty(v) ? text : text.Replace(k, v));
+
             string subFolder = GetSubfolder(outputFilePath, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingDirectory);
 
             foreach (Match match in Regex.Matches(text, @"\$(?<token>[^\$]+)\$", RegexOptions.IgnoreCase))
@@ -184,7 +185,7 @@ namespace Acklann.Templata
 
                     case "filename": text = repl(token, Path.GetFileName(outputFilePath)); break;
                     case "itemname": text = repl(token, Path.GetFileNameWithoutExtension(outputFilePath)); break;
-                    case "safeitemname": text = repl(token, safe(Path.GetFileNameWithoutExtension(outputFilePath))); break;
+                    case "safeitemname": text = repl(token, safe(ToSafeItem(outputFilePath))); break;
 
                     case "time": text = repl(token, DateTime.Now.ToString()); break;
                     case "year": text = repl(token, DateTime.Now.Year.ToString()); break;
@@ -244,6 +245,14 @@ namespace Acklann.Templata
 
             int depth = path.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries).Length;
             return string.Join("/", Enumerable.Repeat("..", depth));
+        }
+
+        internal static string ToSafeItem(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return string.Empty;
+
+            string x = Path.GetFileName(path);
+            return x.Substring(0, x.IndexOf('.'));
         }
 
         internal static string ToNamespace(string rootNamespace, string path)
