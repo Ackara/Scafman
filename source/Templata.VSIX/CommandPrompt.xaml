@@ -43,7 +43,6 @@
             <!--
             vs-dark-color-bg: #FF252526
             vs-dark-color-text-panel: #FF3F3F46
-
             -->
             <Thickness x:Key="t100">6,3</Thickness>
 
@@ -80,6 +79,9 @@
                 <Setter Property="Padding"
                         Value="{StaticResource t100}" />
 
+                <Setter Property="FontSize"
+                        Value="14" />
+
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsSelected}"
                                  Value="True">
@@ -99,6 +101,9 @@
 
                 <Setter Property="TextWrapping"
                         Value="Wrap" />
+
+                <Setter Property="FontSize"
+                        Value="10" />
 
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsSelected}"
@@ -122,7 +127,7 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Effect>
-        <DropShadowEffect/>
+        <DropShadowEffect />
     </Window.Effect>
     <Grid Margin="0,3">
         <Grid.RowDefinitions>

@@ -3,7 +3,7 @@
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
   <Include href="KnownImageIds.vsct" />
-  <!-- Product: Powerbar -->
+  <!-- Product: Template Bar -->
 
   <Commands package="Package">
     <Groups>
@@ -27,9 +27,8 @@
       <Menu type="Menu" guid="CmdSet" id="ToolsMenuId" priority="1">
         <Parent guid="CmdSet" id="VSToolsMenuGroup" />
         <Strings>
-          <MenuText>Powerbar</MenuText>
-          <ButtonText>Powerbar</ButtonText>
-          <CommandName>Powerbar</CommandName>
+          <MenuText>Template Bar</MenuText>
+          <ButtonText>Template Bar</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -39,9 +38,9 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Powerbar</ButtonText>
-          <CommandName>OpenPowerbarAtSelectedItem</CommandName>
-          <ToolTipText>Open the Powerbar at this directory.</ToolTipText>
+          <ButtonText>Open Template Bar</ButtonText>
+          <CommandName>OpenTemplateBarAtSelectedItem</CommandName>
+          <ToolTipText>Open the Template Bar at this directory.</ToolTipText>
         </Strings>
       </Button>
 
@@ -49,8 +48,8 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Powerbar at Project Level</ButtonText>
-          <CommandName>OpenPowerbarAtProjectLevel</CommandName>
+          <ButtonText>Open Template Bar at Project Level</ButtonText>
+          <CommandName>OpenTemplateBarAtProjectLevel</CommandName>
         </Strings>
       </Button>
 
@@ -58,8 +57,24 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Powerbar at Solution Level</ButtonText>
-          <CommandName>OpenPowerbarAtSolutionLevel</CommandName>
+          <ButtonText>Open Template Bar at Solution Level</ButtonText>
+          <CommandName>OpenTemplateBarAtSolutionLevel</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
+        <Icon guid="ImageCatalogGuid" id="SettingsFile" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open Item Group Configuration File</ButtonText>
+          <CommandName>OpenItemGroupConfigurationFile</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="OpenTemplateDirectoryCommandId">
+        <Strings>
+          <ButtonText>Open Template Directory</ButtonText>
+          <CommandName>OpenTemplateFolder</CommandName>
         </Strings>
       </Button>
 
@@ -83,15 +98,7 @@
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
-      <Parent guid="CmdSet" id="ProjectContextMenuGroup" />
-    </CommandPlacement>
-
-    <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
-    </CommandPlacement>
-
-    <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
-      <Parent guid="CmdSet" id="FileContextMenuGroup" />
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="ProjectLevelCommandId" priority="2">
@@ -99,6 +106,14 @@
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="SolutionLevelCommandId" priority="3">
+      <Parent guid="CmdSet" id="ActionCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="OpenTemplateDirectoryCommandId">
+      <Parent guid="CmdSet" id="ActionCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
@@ -132,6 +147,11 @@
       <IDSymbol name="SolutionLevelCommandId" value="0x302" />
 
       <IDSymbol name="ConfigurationPageCommandId" value="0x303" />
+
+      <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x304" />
+      <IDSymbol name="CompareFileWithTemplateCommandId" value="0x305" />
+      <IDSymbol name="AddFileToTemplateDirectoryCommandId" value="0x306" />
+      <IDSymbol name="OpenItemGroupConfigurationFileCommandId" value="0x307" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

@@ -16,7 +16,7 @@ namespace Acklann.Templata
         {
             if (!File.Exists(filePath)) throw new FileNotFoundException($"Could not find item-group configuraiton file at '{filePath}'.");
 
-            using (Stream file = File.OpenRead(filePath))
+            using (Stream file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(ItemGroup[]));
                 return (ItemGroup[])serializer.ReadObject(file);

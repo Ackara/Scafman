@@ -134,17 +134,6 @@ namespace Acklann.Templata.Models
         }
 
         [XmlIgnore]
-        public SearchContext Context
-        {
-            get => _context;
-            set
-            {
-                _context = value;
-                RaisePropertyChangedEvent(nameof(Context));
-            }
-        }
-
-        [XmlIgnore]
         public ObservableCollection<SearchItem> Options
         {
             get => _options;
@@ -172,29 +161,18 @@ namespace Acklann.Templata.Models
         {
             if (string.IsNullOrEmpty(input))
             {
-                Context = SearchContext.None;
+                _intellisenseActivated = false;
                 return;
             }
 
-            switch (Context)
-            {
-                case SearchContext.ItemGroup:
-                    UpdateIntelliList(Intellisense.GetOptions(input, _groups, LIMIT));
-                    break;
-            }
+            if (_intellisenseActivated) UpdateIntelliList(Intellisense.GetOptions(input, _groups, LIMIT));
             if (_options.Count > 0) SelectedIndex = 0;
         }
 
         public void CompleteCommand(string input)
         {
-            switch (Context)
-            {
-                default: UserInput = (Helper.CheckIfEndsWithExtension(input) ? input : (input + Template.GuessExtension(_project, _location))); break;
-
-                case SearchContext.ItemGroup:
-                    if (SelectedItem != null) UserInput = SelectedItem.Command;
-                    break;
-            }
+            if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
+            else UserInput = (Helper.CheckIfEndsWithExtension(input) ? input : (input + Template.GuessExtension(_project, _location)));
 
             Options.Clear();
         }
@@ -214,7 +192,7 @@ namespace Acklann.Templata.Models
             _groups = null;
             Options.Clear();
             UserInput = string.Empty;
-            Context = SearchContext.None;
+            _intellisenseActivated = false;
         }
 
         public void Save()
@@ -222,37 +200,32 @@ namespace Acklann.Templata.Models
             string folder = Path.GetDirectoryName(_stateFilePath);
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-            using (Stream file = File.OpenWrite(_stateFilePath))
+            using (Stream file = new FileStream(_stateFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
                 var serializer = new XmlSerializer(typeof(CommandPromptViewModel));
                 serializer.Serialize(file, this);
             }
         }
 
-        public void Change(SearchContext context)
+        public Task SaveAsync() => Task.Run(() => { try { Save(); } catch (UnauthorizedAccessException) { } });
+
+        public void ActivateIntellisense(bool on)
         {
-            Task.Run(() =>
+#pragma warning disable VSTHRD110 // Observe result of async calls
+            if (on) Task.Run(() =>
+#pragma warning restore VSTHRD110 // Observe result of async calls
             {
-                switch (context)
-                {
-                    case SearchContext.ItemGroup:
-                        if (ConfigurationPage.UserItemGroupFileExists) _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupFile);
-                        break;
-                }
+                if (ConfigurationPage.UserItemGroupFileExists)
+                    try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupFile); }
+                    catch (System.Runtime.Serialization.SerializationException) { }
+                    catch (IOException) { }
             });
 
-            Context = context;
-            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | Context: {_context}");
+            _intellisenseActivated = on;
+            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | intellisense: {_intellisenseActivated}");
         }
 
-        protected void SelectItem(int index)
-        {
-            if (SelectedItem != null) SelectedItem.IsSelected = false;
-            SelectedIndex = index;
-            if (SelectedItem != null) SelectedItem.IsSelected = true;
-        }
-
-        protected void UpdateIntelliList(IntellisenseItem[] items)
+        private void UpdateIntelliList(IntellisenseItem[] items)
         {
             int n = _options.Count;
             for (int i = 0; i < items.Length; i++)
@@ -264,23 +237,22 @@ namespace Acklann.Templata.Models
             while (items.Length < _options.Count) Options.RemoveAt(_options.Count - 1);
         }
 
-        protected void RaisePropertyChangedEvent(string propertyName)
+        private void RaisePropertyChangedEvent(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #region Private Members
+        #region Backing Variables
 
         private readonly ObservableCollection<SearchItem> _options = new ObservableCollection<SearchItem>();
 
-        private bool _usingDarkTheme;
-        private SearchContext _context;
         private volatile ItemGroup[] _groups;
+        private bool _usingDarkTheme, _intellisenseActivated;
         private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _selectedIndex;
         private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _project = string.Empty;
 
         private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Templata), "state.xml");
 
-        #endregion Private Members
+        #endregion Backing Variables
     }
 }

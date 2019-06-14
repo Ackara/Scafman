@@ -42,7 +42,7 @@ namespace Acklann.Templata
                 UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
 
                 UserItemGroupFileExists = File.Exists(UserItemGroupFile);
-                TemplateDirectoryExists = File.Exists(UserTemplateDirectory);
+                TemplateDirectoryExists = Directory.Exists(UserTemplateDirectory);
             }
 
             public override void SaveSettingsToStorage()
@@ -51,6 +51,9 @@ namespace Acklann.Templata
                 UserTemplateDirectory = TemplateDirectory;
                 UserItemGroupFile = ItemGroupsConfigurationFilePath;
                 UserRootProjectName = DefaultSolutionExplorerFolderName;
+
+                UserItemGroupFileExists = File.Exists(UserItemGroupFile);
+                TemplateDirectoryExists = Directory.Exists(UserTemplateDirectory);
             }
         }
     }

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using Package = Microsoft.VisualStudio.Shell.Package;
 
 namespace Acklann.Templata
 {
@@ -100,7 +101,7 @@ namespace Acklann.Templata
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var component = (Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel);
+            var component = (Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel);
             if (component != null)
             {
                 IVsEditorAdaptersFactoryService editorAdapter = component.GetService<IVsEditorAdaptersFactoryService>();

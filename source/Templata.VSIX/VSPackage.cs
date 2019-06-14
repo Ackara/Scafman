@@ -26,7 +26,6 @@ namespace Acklann.Templata
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
-        private const string HELP_LINK = "http://gigobyte.com";
         //var defaultBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -49,13 +48,10 @@ namespace Acklann.Templata
                 commandService.AddCommand(new MenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
                 commandService.AddCommand(new MenuCommand(OnSolutionLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.SolutionLevelCommandId)));
                 commandService.AddCommand(new MenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ConfigurationPageCommandId)));
-            }
-        }
 
-        protected override void Dispose(bool disposing)
-        {
-            _model.Save();
-            base.Dispose(disposing);
+                commandService.AddCommand(new MenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
+                commandService.AddCommand(new MenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
+            }
         }
 
         private string PromptUser(string location)
@@ -65,15 +61,34 @@ namespace Acklann.Templata
             _model.Reset();
             _model.Location = location;
 
-            var dialog = new CommandPrompt(_model);
-            dialog.Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual;
+            var dialog = new CommandPrompt(_model) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
             bool? outcome = dialog.ShowDialog();
+#pragma warning disable VSTHRD110 // Observe result of async calls
+            _model.SaveAsync();
+#pragma warning restore VSTHRD110 // Observe result of async calls
 
             if (!outcome.HasValue || !outcome.Value) return null;
             else return (_model.UserInput ?? string.Empty).Trim();
         }
 
         // ==================== Command Handlers ==================== //
+
+        private void OnAddFileToTemplateDirectory(object sender, EventArgs e)
+        {
+            if (ConfigurationPage.TemplateDirectoryExists)
+            {
+            }
+        }
+
+        private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
+        {
+            if (ConfigurationPage.TemplateDirectoryExists) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
+        }
+
+        private void OnOpenGrougConfigurationFileCommandInvoked(object sender, EventArgs e)
+        {
+            if (ConfigurationPage.UserItemGroupFileExists) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
+        }
 
         private void OnCurrentLevelCommandInvoked(object sender, EventArgs e)
         {
@@ -104,7 +119,7 @@ namespace Acklann.Templata
             string cwd = Helper.GetLocation(context, location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
-            ShowInfo(context);
+            PrintDebugInfo(context);
 
             if (location == Location.Solution) project = null;// The should force files to be added to a solution folder instead of the last selected project.
 
@@ -122,11 +137,11 @@ namespace Acklann.Templata
                         break;
 
                     case Switch.AddFile:
-                        (string filePath, int position) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
+                        (string filePath, int startPosition) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
                         if (File.Exists(filePath))
                         {
                             VsShellUtilities.OpenDocument(this, filePath);
-                            Helper.MoveActiveDocumentCursorTo(position);
+                            Helper.MoveActiveDocumentCursorTo(startPosition);
                             _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
                             _dte.ActiveDocument.Activate();
                         }
@@ -143,6 +158,7 @@ namespace Acklann.Templata
 
                     case Switch.NPMPackage:
                         if (project == null) break;
+                        else if (!string.IsNullOrEmpty(context.ProjectFilePath)) NPM.Install(Path.GetDirectoryName(context.ProjectFilePath), item.Input);
                         break;
                 }
             }
@@ -175,7 +191,7 @@ namespace Acklann.Templata
         private void WriteLine(string message)
         {
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-            _console.OutputStringThreadSafe(message + "\r\n");
+            //_console.OutputStringThreadSafe(message + "\r\n");
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 #if DEBUG
             System.Diagnostics.Debug.WriteLine($"{nameof(Templata)}> {message}");
@@ -186,7 +202,7 @@ namespace Acklann.Templata
 
         private void WriteLine(string format, params object[] args) => WriteLine(string.Format(format, args));
 
-        private void ShowInfo(ProjectContext context)
+        private void PrintDebugInfo(ProjectContext context)
         {
 #if DEBUG
             WriteLine($"solution: {context.SolutionFilePath}");

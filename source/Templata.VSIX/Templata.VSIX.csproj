@@ -45,6 +45,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -53,6 +54,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandPrompt.xaml.cs">
@@ -62,7 +64,6 @@
     <Compile Include="Helper.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="LogLevel.cs" />
-    <Compile Include="Models\SearchContext.cs" />
     <Compile Include="Models\SearchItem.cs" />
     <Compile Include="ProjectExtensions.cs" />
     <Compile Include="source.extension.cs">

@@ -71,26 +71,23 @@ namespace Acklann.Templata
             return (outFile, position);
         }
 
-        public static void InstallNuGetPackage(this EnvDTE.Project project, string packageId, IVsPackageInstallerServices nuget, IVsPackageInstaller installer, EnvDTE.StatusBar status)
+        public static void InstallNuGetPackage(this EnvDTE.Project project, Package package, IVsPackageInstallerServices nuget, IVsPackageInstaller installer, EnvDTE.StatusBar status)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (string.IsNullOrEmpty(packageId)) return;
-            string[] segments = packageId.Split('-');
-            string name = segments[0];
-            string version = (segments.Length > 1 ? segments[1] : null);
+            if (string.IsNullOrEmpty(package.Name)) return;
 
-            if (!nuget.IsPackageInstalled(project, name))
+            if (!nuget.IsPackageInstalled(project, package.Name))
             {
-                status.Text = $"{Vsix.Name} | Installing package {name}-{version}...";
+                status.Text = $"{Vsix.Name} | Installing {package}...";
                 status.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationSync);
 
                 try
                 {
-                    installer.InstallPackage(null, project, name, version, false);
-                    status.Text = $"{nameof(Vsix.Name)} | Installed {name}-{version}.";
+                    installer.InstallPackage(null, project, package.Name, package.Version, false);
+                    status.Text = $"{Vsix.Name} | Installed {package}";
                 }
-                catch { status.Text = $"{nameof(Vsix.Name)} | Unable to install {name}-{version}."; }
+                catch { status.Text = $"{Vsix.Name} | Unable to install {package}"; }
                 finally { status.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationSync); }
             }
         }

@@ -12,7 +12,7 @@ namespace Acklann.Templata
             if (context != null) DataContext = _model = context;
 
             Title = Vsix.Name;
-            SizeToContent = (_model.Width <= CommandPromptViewModel.MINIMUM_WIDTH ? SizeToContent.WidthAndHeight : SizeToContent.Height);
+            SizeToContent = SizeToContent.Height;
             WindowStartupLocation = (_model.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }
 
@@ -35,12 +35,11 @@ namespace Acklann.Templata
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey.IsDown) _model.Change(SearchContext.ItemGroup);
+                    if (_shiftKey.IsDown) _model.ActivateIntellisense(true);
                     break;
 
                 case Key.OemSemicolon: // ')' key
-                    if (_shiftKey.IsDown) _model.Change(SearchContext.NuGet | SearchContext.NPM);
-                    else _model.Change(SearchContext.None);
+                    _model.ActivateIntellisense(false);
                     break;
 
                 case Key.Up:
@@ -66,11 +65,11 @@ namespace Acklann.Templata
                     break;
 
                 case Key.D0:
-                    if (_shiftKey.IsDown) _model.Change(SearchContext.None);
+                    if (_shiftKey.IsDown) _model.ActivateIntellisense(false);
                     break;
 
                 case Key.OemComma:
-                    _model.Change(SearchContext.None);
+                    _model.ActivateIntellisense(false);
                     break;
             }
         }

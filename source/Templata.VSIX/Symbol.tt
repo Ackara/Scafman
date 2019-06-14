@@ -37,7 +37,7 @@ void GenerateMembers()
 				PushIndent("\t\t");
 				foreach (var guid in symbols)
 				{
-					WriteLine($"public struct {guid.Attribute("name").Value}");
+					WriteLine($"public class {guid.Attribute("name").Value}");
 					WriteLine("{");
 					PushIndent("\t");
 

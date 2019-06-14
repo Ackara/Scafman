@@ -15,8 +15,7 @@ namespace Acklann.Templata
         {
             if (string.IsNullOrEmpty(fileList)) return new string[0];
 
-            Group group = null;
-            string input = "";
+            Group group; string input = "";
             var result = new List<string>();
             var pattern = new Regex(@"\((?<item>[^\)]+)\)", RegexOptions.IgnoreCase);
             string[] list = fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -24,7 +23,7 @@ namespace Acklann.Templata
             for (int i = 0; i < list.Length; i++)
             {
                 group = null;
-                input = list[i];
+                input = list[i].Trim();
                 while (pattern.IsMatch(input))
                 {
                     Match match = pattern.Match(input);
