@@ -215,7 +215,7 @@ namespace Acklann.Templata.Models
             if (on) Task.Run(() =>
 #pragma warning restore VSTHRD110 // Observe result of async calls
             {
-                if (ConfigurationPage.UserItemGroupFileExists)
+                if (File.Exists(ConfigurationPage.UserItemGroupFile))
                     try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupFile); }
                     catch (System.Runtime.Serialization.SerializationException) { }
                     catch (IOException) { }

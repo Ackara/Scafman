@@ -2,27 +2,32 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 
 namespace Acklann.Templata
 {
     public class ConfigurationPage
     {
-        internal static bool TemplateDirectoryExists, UserItemGroupFileExists;
-        internal static string UserTemplateDirectory, UserItemGroupFile, UserRootProjectName;
+        internal static bool ShouldCreateTemplateIfMissing;
+        internal static string UserItemGroupFile, UserRootProjectName;
+        internal static string[] UserTemplateDirectories;
 
-        internal static void Load(General config)
+        internal static string UserTemplateDirectory
         {
-            UserRootProjectName = config.DefaultSolutionExplorerFolderName;
-            UserTemplateDirectory = Environment.ExpandEnvironmentVariables(config.TemplateDirectory ?? string.Empty);
-            UserItemGroupFile = Environment.ExpandEnvironmentVariables(config.ItemGroupsConfigurationFilePath ?? string.Empty);
+            get => (UserTemplateDirectories?.Length > 0 ? UserTemplateDirectories[0] : null);
         }
 
         public class General : DialogPage
         {
+            private readonly string[] _builtInTemplateFolders = new string[]
+            {
+                Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates")
+            };
+
             [Category(nameof(General))]
             [DisplayName("Template Directory")]
             [Description("The absolute path of your template directory.")]
-            public string TemplateDirectory { get; set; }
+            public string[] TemplateDirectories { get; set; }
 
             [Category(nameof(General))]
             [DisplayName("Item Groups")]
@@ -34,26 +39,35 @@ namespace Acklann.Templata
             [Description("The name of default solution explorer folder name")]
             public string DefaultSolutionExplorerFolderName { get; set; } = "Solution Items";
 
+            [Category(nameof(General))]
+            [DisplayName("Create Template If Not Exists")]
+            [Description("Determines whether to create the missing template when the compare command is invoked.")]
+            public bool CreateTemplateIfMissing { get; set; } = true;
+
             public override void LoadSettingsFromStorage()
             {
+                System.Diagnostics.Debug.WriteLine($"{nameof(ConfigurationPage)}::{nameof(LoadSettingsFromStorage)}");
                 base.LoadSettingsFromStorage();
-                UserRootProjectName = DefaultSolutionExplorerFolderName;
-                UserTemplateDirectory = Environment.ExpandEnvironmentVariables(TemplateDirectory ?? string.Empty);
-                UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
-
-                UserItemGroupFileExists = File.Exists(UserItemGroupFile);
-                TemplateDirectoryExists = Directory.Exists(UserTemplateDirectory);
+                Update();
             }
 
             public override void SaveSettingsToStorage()
             {
+                System.Diagnostics.Debug.WriteLine($"{nameof(ConfigurationPage)}::{nameof(SaveSettingsToStorage)}");
                 base.SaveSettingsToStorage();
-                UserTemplateDirectory = TemplateDirectory;
-                UserItemGroupFile = ItemGroupsConfigurationFilePath;
-                UserRootProjectName = DefaultSolutionExplorerFolderName;
+                Update();
+            }
 
-                UserItemGroupFileExists = File.Exists(UserItemGroupFile);
-                TemplateDirectoryExists = Directory.Exists(UserTemplateDirectory);
+            private void Update()
+            {
+                UserRootProjectName = DefaultSolutionExplorerFolderName;
+                ShouldCreateTemplateIfMissing = CreateTemplateIfMissing;
+                UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
+
+                if (TemplateDirectories?.Length > 0)
+                    UserTemplateDirectories = TemplateDirectories.Select((x) => Environment.ExpandEnvironmentVariables(x)).Concat(_builtInTemplateFolders).ToArray();
+                else
+                    UserTemplateDirectories = _builtInTemplateFolders;
             }
         }
     }

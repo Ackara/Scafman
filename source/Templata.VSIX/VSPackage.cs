@@ -1,11 +1,11 @@
 ﻿using Acklann.GlobN;
+using Acklann.Templata.Extensions;
 using Acklann.Templata.Models;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using System;
 using System.ComponentModel.Design;
@@ -33,24 +33,21 @@ namespace Acklann.Templata
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var settings = (ConfigurationPage.General)GetDialogPage(typeof(ConfigurationPage.General));
-            ConfigurationPage.Load(settings);
-
             _dte = (await GetServiceAsync(typeof(DTE)) as DTE2);
             _model = await CommandPromptViewModel.RestoreAsync();
 
-            _console = CreateOutputWindow(Vsix.Name);
             Assumes.Present(_dte);
 
             var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
             if (commandService != null)
             {
-                commandService.AddCommand(new MenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
-                commandService.AddCommand(new MenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
-                commandService.AddCommand(new MenuCommand(OnSolutionLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.SolutionLevelCommandId)));
-                commandService.AddCommand(new MenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ConfigurationPageCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ConfigurationPageCommandId)));
 
-                commandService.AddCommand(new MenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
-                commandService.AddCommand(new MenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnCompareFileWithTemplateCommandInvoked, null, OnCompareFileWithTemplateCommandStatusQueried, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CompareFileWithTemplateCommandId)));
             }
         }
 
@@ -73,36 +70,54 @@ namespace Acklann.Templata
 
         // ==================== Command Handlers ==================== //
 
-        private void OnAddFileToTemplateDirectory(object sender, EventArgs e)
+        private void OnCompareFileWithTemplateCommandStatusQueried(object sender, EventArgs e)
         {
-            if (ConfigurationPage.TemplateDirectoryExists)
+            if (sender is OleMenuCommand command)
             {
+                command.Enabled = _dte.ActiveDocument?.FullName != null;
+            }
+        }
+
+        private void OnCompareFileWithTemplateCommandInvoked(object sender, EventArgs e)
+        {
+            string activeFile = _dte.ActiveDocument?.FullName;
+            if (!string.IsNullOrEmpty(activeFile))
+            {
+                string templateFile = Template.Find(activeFile, ConfigurationPage.UserTemplateDirectories);
+
+                if (ConfigurationPage.ShouldCreateTemplateIfMissing && string.IsNullOrEmpty(templateFile))
+                {
+                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(activeFile));
+                    string folder = Path.GetDirectoryName(ConfigurationPage.UserTemplateDirectory);
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                    File.Create(templateFile).Dispose();
+                }
+
+                if (!string.IsNullOrEmpty(templateFile))
+                {
+                    _dte.LaunchDiffTool(activeFile, templateFile);
+                }
             }
         }
 
         private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
         {
-            if (ConfigurationPage.TemplateDirectoryExists) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
+            if (Directory.Exists(ConfigurationPage.UserTemplateDirectory)) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
         }
 
         private void OnOpenGrougConfigurationFileCommandInvoked(object sender, EventArgs e)
         {
-            if (ConfigurationPage.UserItemGroupFileExists) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
+            if (File.Exists(ConfigurationPage.UserItemGroupFile)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
         }
 
         private void OnCurrentLevelCommandInvoked(object sender, EventArgs e)
         {
-            ExecuteCommand(Location.Current, null);
+            ExecuteTemplateCommand(Location.Current, null);
         }
 
         private void OnProjectLevelCommandInvoked(object sender, EventArgs e)
         {
-            ExecuteCommand(Location.Project, null);
-        }
-
-        private void OnSolutionLevelCommandInvoked(object sender, EventArgs e)
-        {
-            ExecuteCommand(Location.Solution, null);
+            ExecuteTemplateCommand(Location.Project, null);
         }
 
         private void OnConfigurationCommandInvoked(object sender, EventArgs e)
@@ -110,7 +125,7 @@ namespace Acklann.Templata
             ShowOptionPage(typeof(ConfigurationPage.General));
         }
 
-        private void ExecuteCommand(Location location, string command = null)
+        private void ExecuteTemplateCommand(Location location, string command = null)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -119,7 +134,7 @@ namespace Acklann.Templata
             string cwd = Helper.GetLocation(context, location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
-            PrintDebugInfo(context);
+            DisplayInfo(context);
 
             if (location == Location.Solution) project = null;// The should force files to be added to a solution folder instead of the last selected project.
 
@@ -137,7 +152,7 @@ namespace Acklann.Templata
                         break;
 
                     case Switch.AddFile:
-                        (string filePath, int startPosition) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectory, _builtinTemplateDirectory);
+                        (string filePath, int startPosition) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectories);
                         if (File.Exists(filePath))
                         {
                             VsShellUtilities.OpenDocument(this, filePath);
@@ -166,53 +181,20 @@ namespace Acklann.Templata
 
         #region Private Members
 
-        private readonly string _builtinTemplateDirectory = Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates");
-
         private DTE2 _dte;
-        private IVsOutputWindowPane _console;
         private CommandPromptViewModel _model;
 
-        private IVsOutputWindowPane CreateOutputWindow(string title = nameof(Templata))
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            var outputWindow = (IVsOutputWindow)GetService(typeof(SVsOutputWindow));
-            if (outputWindow != null)
-            {
-                var guid = new Guid("d74cfc8e-4d98-44b6-b6ad-975af82658fb");
-                outputWindow.CreatePane(ref guid, title, 1, 1);
-                outputWindow.GetPane(ref guid, out IVsOutputWindowPane pane);
-                return pane;
-            }
-
-            return null;
-        }
-
-        private void WriteLine(string message)
-        {
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-            //_console.OutputStringThreadSafe(message + "\r\n");
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-#if DEBUG
-            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)}> {message}");
-#endif
-        }
-
-        private void WriteLine(string message, LogLevel level) => WriteLine(Helper.Format(level, message));
-
-        private void WriteLine(string format, params object[] args) => WriteLine(string.Format(format, args));
-
-        private void PrintDebugInfo(ProjectContext context)
+        private void DisplayInfo(ProjectContext context)
         {
 #if DEBUG
-            WriteLine($"solution: {context.SolutionFilePath}");
-            WriteLine($"project: {context.ProjectFilePath}");
-            WriteLine($"project-item: {context.ProjectItemPath}");
-            WriteLine($"selected-items: " + string.Join(" | ", context.SelectedItems));
-            WriteLine($"namespace: {context.RootNamespace}");
-            WriteLine($"assembly: {context.Assemblyname}");
-            WriteLine($"version: {context.Version}");
-            WriteLine("\n");
+            System.Diagnostics.Debug.WriteLine($"solution: {context.SolutionFilePath}");
+            System.Diagnostics.Debug.WriteLine($"project: {context.ProjectFilePath}");
+            System.Diagnostics.Debug.WriteLine($"project-item: {context.ProjectItemPath}");
+            System.Diagnostics.Debug.WriteLine($"selected-items: " + string.Join(" | ", context.SelectedItems));
+            System.Diagnostics.Debug.WriteLine($"namespace: {context.RootNamespace}");
+            System.Diagnostics.Debug.WriteLine($"assembly: {context.Assemblyname}");
+            System.Diagnostics.Debug.WriteLine($"version: {context.Version}");
+            System.Diagnostics.Debug.WriteLine("\n");
 #endif
         }
 

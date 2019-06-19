@@ -61,11 +61,12 @@
       <DependentUpon>CommandPrompt.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationPage.cs" />
+    <Compile Include="Extensions\DTEExtenstions.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Models\SearchItem.cs" />
-    <Compile Include="ProjectExtensions.cs" />
+    <Compile Include="Extensions\ProjectExtensions.cs" />
     <Compile Include="source.extension.cs">
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>

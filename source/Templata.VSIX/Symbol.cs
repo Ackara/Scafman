@@ -21,12 +21,11 @@ namespace Acklann.Templata
 			public const int ToolsMenuId = 0x201;
 			public const int CurrentLevelCommandId = 0x300;
 			public const int ProjectLevelCommandId = 0x301;
-			public const int SolutionLevelCommandId = 0x302;
 			public const int ConfigurationPageCommandId = 0x303;
-			public const int OpenTemplateDirectoryCommandId = 0x304;
-			public const int CompareFileWithTemplateCommandId = 0x305;
-			public const int AddFileToTemplateDirectoryCommandId = 0x306;
-			public const int OpenItemGroupConfigurationFileCommandId = 0x307;
+			public const int OpenTemplateDirectoryCommandId = 0x330;
+			public const int CompareFileWithTemplateCommandId = 0x331;
+			public const int AddFileToTemplateDirectoryCommandId = 0x332;
+			public const int OpenItemGroupConfigurationFileCommandId = 0x333;
 		}
 	}
 }

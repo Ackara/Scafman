@@ -4,7 +4,7 @@ using NuGet.VisualStudio;
 using System;
 using System.IO;
 
-namespace Acklann.Templata
+namespace Acklann.Templata.Extensions
 {
     internal static class ProjectExtensions
     {
@@ -60,7 +60,7 @@ namespace Acklann.Templata
             // Building the template.
             int position = -1; string fileContent = "";
             templatePath = Template.Find(Path.GetFileName(templatePath), templateDirectories);
-            if (File.Exists(templatePath))
+            if (!string.IsNullOrEmpty(templatePath))
             {
                 fileContent = Template.Replace(File.ReadAllText(templatePath), context, outFile, cwd);
                 fileContent = Template.RemoveCaret(fileContent, out position);

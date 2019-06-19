@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Package = Microsoft.VisualStudio.Shell.Package;
 
 namespace Acklann.Templata
 {
@@ -86,17 +85,6 @@ namespace Acklann.Templata
             }
         }
 
-        public static string TryGetProperty(EnvDTE.Project project, string name)
-        {
-            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-            try
-            {
-                return Convert.ToString(project?.Properties?.Item(name)?.Value);
-            }
-            catch { /* could not find the property. */ }
-            return null;
-        }
-
         public static IWpfTextView GetTextEditor()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -131,21 +119,15 @@ namespace Acklann.Templata
             else return Regex.IsMatch(path, @"\.[a-z0-9]+$", RegexOptions.IgnoreCase);
         }
 
-        public static string Format(LogLevel level, string message)
+        private static string TryGetProperty(EnvDTE.Project project, string name)
         {
-            if (string.IsNullOrEmpty(message)) return string.Empty;
-            else switch (level)
-                {
-                    default:
-                    case LogLevel.Info:
-                        return $"INFO: {message}";
-
-                    case LogLevel.Warn:
-                        return $"WARN: {message}";
-
-                    case LogLevel.Error:
-                        return $"ERROR: {message}";
-                }
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            try
+            {
+                return Convert.ToString(project?.Properties?.Item(name)?.Value);
+            }
+            catch { /* could not find the property. */ }
+            return null;
         }
 
         #region P/Invoke

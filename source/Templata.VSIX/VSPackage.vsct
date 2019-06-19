@@ -53,18 +53,11 @@
         </Strings>
       </Button>
 
-      <Button guid="CmdSet" id="SolutionLevelCommandId">
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Open Template Bar at Solution Level</ButtonText>
-          <CommandName>OpenTemplateBarAtSolutionLevel</CommandName>
-        </Strings>
-      </Button>
-
       <Button guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
         <Icon guid="ImageCatalogGuid" id="SettingsFile" />
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>AllowVisibilityChangeOnToolBar</CommandFlag>
         <Strings>
           <ButtonText>Open Item Group Configuration File</ButtonText>
           <CommandName>OpenItemGroupConfigurationFile</CommandName>
@@ -75,6 +68,17 @@
         <Strings>
           <ButtonText>Open Template Directory</ButtonText>
           <CommandName>OpenTemplateFolder</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="CompareFileWithTemplateCommandId">
+        <Icon guid="ImageCatalogGuid" id="CompareFiles" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Compare With Template</ButtonText>
+          <CommandName>CompareWithActiveDocument</CommandName>
         </Strings>
       </Button>
 
@@ -105,7 +109,7 @@
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="SolutionLevelCommandId" priority="3">
+    <CommandPlacement guid="CmdSet" id="CompareFileWithTemplateCommandId" priority="3">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
@@ -125,7 +129,7 @@
   <VisibilityConstraints>
     <VisibilityItem guid="CmdSet" id="CurrentLevelCommandId" context="UICONTEXT_SolutionExists" />
     <VisibilityItem guid="CmdSet" id="ProjectLevelCommandId" context="UICONTEXT_SolutionExists" />
-    <VisibilityItem guid="CmdSet" id="SolutionLevelCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="CompareFileWithTemplateCommandId" context="UICONTEXT_SolutionExists" />
   </VisibilityConstraints>
 
   <Symbols>
@@ -144,14 +148,13 @@
       <!-- Commands -->
       <IDSymbol name="CurrentLevelCommandId" value="0x300" />
       <IDSymbol name="ProjectLevelCommandId" value="0x301" />
-      <IDSymbol name="SolutionLevelCommandId" value="0x302" />
 
       <IDSymbol name="ConfigurationPageCommandId" value="0x303" />
 
-      <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x304" />
-      <IDSymbol name="CompareFileWithTemplateCommandId" value="0x305" />
-      <IDSymbol name="AddFileToTemplateDirectoryCommandId" value="0x306" />
-      <IDSymbol name="OpenItemGroupConfigurationFileCommandId" value="0x307" />
+      <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x330" />
+      <IDSymbol name="CompareFileWithTemplateCommandId" value="0x331" />
+      <IDSymbol name="AddFileToTemplateDirectoryCommandId" value="0x332" />
+      <IDSymbol name="OpenItemGroupConfigurationFileCommandId" value="0x333" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
