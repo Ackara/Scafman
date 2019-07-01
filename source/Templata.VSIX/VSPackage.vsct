@@ -3,7 +3,7 @@
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
   <Include href="KnownImageIds.vsct" />
-  <!-- Product: Template Bar -->
+  <!-- Product: Template Manager -->
 
   <Commands package="Package">
     <Groups>
@@ -27,8 +27,8 @@
       <Menu type="Menu" guid="CmdSet" id="ToolsMenuId" priority="1">
         <Parent guid="CmdSet" id="VSToolsMenuGroup" />
         <Strings>
-          <MenuText>Template Bar</MenuText>
-          <ButtonText>Template Bar</ButtonText>
+          <MenuText>Template Manager</MenuText>
+          <ButtonText>Template Manager</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -38,9 +38,9 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Template Bar</ButtonText>
-          <CommandName>OpenTemplateBarAtSelectedItem</CommandName>
-          <ToolTipText>Open the Template Bar at this directory.</ToolTipText>
+          <ButtonText>Open Template Manager</ButtonText>
+          <CommandName>OpenTemplateManagerAtSelectedItem</CommandName>
+          <ToolTipText>Open the Template Manager at this directory.</ToolTipText>
         </Strings>
       </Button>
 
@@ -48,8 +48,8 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Template Bar at Project Level</ButtonText>
-          <CommandName>OpenTemplateBarAtProjectLevel</CommandName>
+          <ButtonText>Open Template Manager at Project Level</ButtonText>
+          <CommandName>OpenTemplateManagerAtProjectLevel</CommandName>
         </Strings>
       </Button>
 
@@ -113,11 +113,11 @@
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="OpenTemplateDirectoryCommandId">
+    <CommandPlacement guid="CmdSet" id="OpenTemplateDirectoryCommandId" priority="4">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
+    <CommandPlacement guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId" priority="5">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 

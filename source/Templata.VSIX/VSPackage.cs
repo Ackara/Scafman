@@ -157,8 +157,8 @@ namespace Acklann.Templata
                         {
                             VsShellUtilities.OpenDocument(this, filePath);
                             Helper.MoveActiveDocumentCursorTo(startPosition);
-                            _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
-                            _dte.ActiveDocument.Activate();
+                            try { _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument"); } catch (COMException) { }
+                            _dte.ActiveDocument?.Activate();
                         }
                         break;
 

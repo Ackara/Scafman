@@ -64,7 +64,6 @@
     <Compile Include="Extensions\DTEExtenstions.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Location.cs" />
-    <Compile Include="LogLevel.cs" />
     <Compile Include="Models\SearchItem.cs" />
     <Compile Include="Extensions\ProjectExtensions.cs" />
     <Compile Include="source.extension.cs">
@@ -266,6 +265,10 @@
     <Page Include="CommandPrompt.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\Templata.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

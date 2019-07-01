@@ -35,7 +35,7 @@ namespace Acklann.Templata
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey.IsDown) _model.ActivateIntellisense(true);
+                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense(true);
                     break;
 
                 case Key.OemSemicolon: // ')' key
@@ -65,7 +65,7 @@ namespace Acklann.Templata
                     break;
 
                 case Key.D0:
-                    if (_shiftKey.IsDown) _model.ActivateIntellisense(false);
+                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense(false);
                     break;
 
                 case Key.OemComma:
