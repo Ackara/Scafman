@@ -7,10 +7,10 @@
   <PropertyGroup>
     <Copyright>Copyright © 2019, Tecari</Copyright>
     <Company>Tecari</Company>
-    <AssemblyVersion>0.1.6</AssemblyVersion>
+    <AssemblyVersion>0.1.7</AssemblyVersion>
     <Authors>Ackara</Authors>
     <PackageTags>new file powershell command</PackageTags>
-    <PackageVersion>0.1.6</PackageVersion>
+    <PackageVersion>0.1.7</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
