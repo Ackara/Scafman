@@ -52,7 +52,7 @@ namespace Acklann.Templata.Tests
         public void Can_expand_item_groups(string input, string expected)
         {
             var config = SampleFactory.GetFile("itemgroups.json").FullName;
-            var result = Template.ExpandItemGroup(input, config);
+            var result = Template.ExpandItemGroups(input, config);
 
             if (input == null) Assert.AreEqual(result, expected);
             else result.ShouldBe(expected);

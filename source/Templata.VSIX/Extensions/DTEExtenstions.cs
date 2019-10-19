@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Acklann.Templata.Extensions
 {
@@ -27,7 +28,25 @@ namespace Acklann.Templata.Extensions
             Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
 
             object args = $"\"{file1}\" \"{file2}\"";
-            dte.Commands.Raise("{5D4C0442-C0A2-4BE8-9B4D-AB1C28450942}", 256, ref args, ref args);
+
+            if (File.Exists(ConfigurationPage.DiffExecutable))
+            {
+                using (var diff = new System.Diagnostics.Process())
+                {
+                    diff.StartInfo = new System.Diagnostics.ProcessStartInfo()
+                    {
+                        FileName = ConfigurationPage.DiffExecutable,
+                        Arguments = (string)args
+                    };
+
+                    diff.Start();
+                }
+            }
+            else
+            {
+                dte.Commands.Raise("{5D4C0442-C0A2-4BE8-9B4D-AB1C28450942}", 256, ref args, ref args);
+                if (!string.IsNullOrEmpty(ConfigurationPage.DiffExecutable)) dte.StatusBar.Text = $"Counld not find '{ConfigurationPage.DiffExecutable}'.";
+            }
         }
     }
 }

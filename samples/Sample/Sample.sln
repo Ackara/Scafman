@@ -9,7 +9,12 @@ Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "PowerShellProject1", "Power
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Database1", "Database1\Database1.sqlproj", "{90E60556-6B6F-48CA-880A-65237496357B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{BBA6C886-D33E-4BA6-A875-384563669B37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{BBA6C886-D33E-4BA6-A875-384563669B37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{019908D5-82A8-4CBF-8009-20E550896BC9}"
+	ProjectSection(SolutionItems) = preProject
+		foo.md = foo.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

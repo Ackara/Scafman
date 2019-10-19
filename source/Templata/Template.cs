@@ -9,7 +9,7 @@ namespace Acklann.Templata
 {
     public class Template
     {
-        private const string separator = ";";
+        private const char separator = ';';
 
         public static string[] Split(string fileList)
         {
@@ -89,7 +89,7 @@ namespace Acklann.Templata
             return content;
         }
 
-        public static string ExpandItemGroup(string input, string configurationFilePath)
+        public static string ExpandItemGroups(string input, string configurationFilePath)
         {
             if (string.IsNullOrEmpty(input)) return input;
             return ExpandItemGroup(input, ItemGroup.ReadFile(configurationFilePath));
@@ -104,9 +104,10 @@ namespace Acklann.Templata
             while (match.Success)
             {
                 string key = match.Groups["name"].Value;
-                var value = (from i in itemGroups
-                             where string.Equals(i.Name, key, StringComparison.OrdinalIgnoreCase)
-                             select string.Join(separator, i.FileList)).FirstOrDefault();
+                string value = (from i in itemGroups
+                                where string.Equals(i.Name, key, StringComparison.OrdinalIgnoreCase)
+                                select string.Join(char.ToString(separator), i.FileList)
+                                ).FirstOrDefault();
                 input = input.Replace(match.Value, (value ?? string.Empty));
                 match = pattern.Match(input);
             }
@@ -179,8 +180,11 @@ namespace Acklann.Templata
                     case "safeprojectname": text = repl(token, safe(Path.GetFileNameWithoutExtension(context.ProjectFilePath))); break;
 
                     case "subfolder": text = repl(token, subFolder); break;
-                    case "projectrelativepath": text = repl(token, ToUpDirectoryTokens(subFolder)); break;
                     case "foldername": text = repl(token, Path.GetFileName(Path.GetDirectoryName(outputFilePath))); break;
+                    case "relativepath":
+                    case "projectrelativepath":
+                        text = repl(token, ToUpDirectoryTokens(subFolder));
+                        break;
 
                     case "filename": text = repl(token, Path.GetFileName(outputFilePath)); break;
                     case "itemname": text = repl(token, Path.GetFileNameWithoutExtension(outputFilePath)); break;
@@ -226,7 +230,8 @@ namespace Acklann.Templata
                     return path;
                 }
 
-            // Attempt #2: Treating (~) as a wildcard, find the first template that best math the file name.
+            // Attempt #2: Treating (~) as a wildcard, find the first template that best math the
+            // file name.
             foreach (string path in templateFiles.Where(x => x.Contains("~")).OrderByDescending(x => x.Length))
             {
                 // TODO: Replace with GlobN

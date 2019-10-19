@@ -16,12 +16,12 @@
         {
             if (string.IsNullOrEmpty(text)) return new Command(string.Empty, Switch.None);
 
-            int pkg = text.IndexOf(':');
+            int colon = text.IndexOf(':');
 
-            if (pkg > -1)
+            if (colon > -1)
             {
-                string flag = text.Substring(0, pkg).ToLowerInvariant();
-                return new Command(text.Substring(pkg + 1).Trim(), ToSwitch(flag));
+                string flag = text.Substring(0, colon).ToLowerInvariant();
+                return new Command(text.Substring(colon + 1).Trim(), ToSwitch(flag));
             }
             else if (text.EndsWith("/") || text.EndsWith("\\"))
                 return new Command(text, Switch.AddFolder);

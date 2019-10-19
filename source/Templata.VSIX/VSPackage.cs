@@ -134,12 +134,12 @@ namespace Acklann.Templata
             string cwd = Helper.GetLocation(context, location);
             if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
-            DisplayInfo(context);
+            PrintInfo(context);
 
             if (location == Location.Solution) project = null;// The should force files to be added to a solution folder instead of the last selected project.
 
             if (File.Exists(ConfigurationPage.UserItemGroupFile))
-                command = Template.ExpandItemGroup(command, ConfigurationPage.UserItemGroupFile);
+                command = Template.ExpandItemGroups(command, ConfigurationPage.UserItemGroupFile);
 
             IVsPackageInstaller installer = null; IComponentModel componentModel = null; IVsPackageInstallerServices nuget = null;
 
@@ -148,11 +148,11 @@ namespace Acklann.Templata
                 switch (item.Kind)
                 {
                     case Switch.AddFolder:
-                        project.AddFolder(item.Input.ExpandPath(cwd));
+                        (project ?? Helper.GetSolutionFolder(_dte)).AddFolder(item.Input.ExpandPath(cwd));
                         break;
 
                     case Switch.AddFile:
-                        (string filePath, int startPosition) = project.AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectories);
+                        (string filePath, int startPosition) = (project ?? Helper.GetSolutionFolder(_dte)).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectories);
                         if (File.Exists(filePath))
                         {
                             VsShellUtilities.OpenDocument(this, filePath);
@@ -184,7 +184,7 @@ namespace Acklann.Templata
         private DTE2 _dte;
         private CommandPromptViewModel _model;
 
-        private void DisplayInfo(ProjectContext context)
+        private void PrintInfo(ProjectContext context)
         {
 #if DEBUG
             System.Diagnostics.Debug.WriteLine($"solution: {context.SolutionFilePath}");

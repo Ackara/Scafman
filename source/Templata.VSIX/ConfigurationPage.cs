@@ -10,7 +10,7 @@ namespace Acklann.Templata
     public class ConfigurationPage
     {
         internal static bool ShouldCreateTemplateIfMissing;
-        internal static string UserItemGroupFile, UserRootProjectName;
+        internal static string UserItemGroupFile, SolutionFolderName, DiffExecutable;
         internal static string[] UserTemplateDirectories;
 
         internal static string UserTemplateDirectory
@@ -20,6 +20,21 @@ namespace Acklann.Templata
 
         public class General : DialogPage
         {
+            public General()
+            {
+                var knownTools = new string[]
+                {
+                    @"C:\Program Files\Beyond Compare 4\BCompare.exe"
+                };
+
+                foreach (string filePath in knownTools)
+                    if (File.Exists(filePath))
+                    {
+                        DiffTool = filePath;
+                        break;
+                    }
+            }
+
             private readonly string[] _builtInTemplateFolders = new string[]
             {
                 Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates")
@@ -46,10 +61,16 @@ namespace Acklann.Templata
             [Description("Determines whether to create the missing template when the compare command is invoked.")]
             public bool CreateTemplateIfMissing { get; set; } = true;
 
+            [Category(nameof(General))]
+            [DisplayName("Preferred diff tool.")]
+            [Description("The absolute path the preferred diff tool.")]
+            public string DiffTool { get; set; }
+
             public override void LoadSettingsFromStorage()
             {
                 System.Diagnostics.Debug.WriteLine($"{nameof(ConfigurationPage)}::{nameof(LoadSettingsFromStorage)}");
                 base.LoadSettingsFromStorage();
+
                 Update();
             }
 
@@ -62,7 +83,8 @@ namespace Acklann.Templata
 
             private void Update()
             {
-                UserRootProjectName = DefaultSolutionExplorerFolderName;
+                DiffExecutable = DiffTool;
+                SolutionFolderName = DefaultSolutionExplorerFolderName;
                 ShouldCreateTemplateIfMissing = CreateTemplateIfMissing;
                 UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
 

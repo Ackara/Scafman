@@ -36,7 +36,7 @@ namespace Acklann.Templata
                         if (!string.IsNullOrEmpty(item?.ProjectItem?.ContainingProject?.FullName))
                         {
                             project = item.ProjectItem.ContainingProject;
-                            projectPath = item.ProjectItem.ContainingProject.FullName;
+                            projectPath = project.FullName;
                         }
                     }
                     else if (!string.IsNullOrEmpty(item?.Project?.FullName))
@@ -63,6 +63,20 @@ namespace Acklann.Templata
                 );
         }
 
+        public static EnvDTE.Project GetSolutionFolder(DTE2 dte)
+        {
+            if (dte == null) throw new ArgumentNullException(nameof(dte));
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            foreach (EnvDTE.Project item in dte.Solution.Projects)
+                if (string.Equals(item.Name, ConfigurationPage.SolutionFolderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+
+            return (dte.Solution as Solution2)?.AddSolutionFolder(ConfigurationPage.SolutionFolderName);
+        }
+
         public static string GetLocation(ProjectContext context, Location location)
         {
             switch (location)
@@ -75,7 +89,8 @@ namespace Acklann.Templata
                         return Path.GetDirectoryName(context.ProjectFilePath);
                     else if (!string.IsNullOrEmpty(context.SolutionFilePath))
                         return Path.GetDirectoryName(context.SolutionFilePath);
-                    else return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    else
+                        return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
                 case Location.Project:
                     return Path.GetDirectoryName(context.ProjectFilePath) ?? throw new DirectoryNotFoundException("Could not find the project directory.");

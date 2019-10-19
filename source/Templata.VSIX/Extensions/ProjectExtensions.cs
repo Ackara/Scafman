@@ -12,6 +12,11 @@ namespace Acklann.Templata.Extensions
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")/* virtual folder */
+            {
+                return project.ProjectItems;
+            }
+
             EnvDTE.ProjectItems folder = project.ProjectItems;
             string location = Path.GetDirectoryName(project.FullName);
             string relativePath = path.Replace(location, string.Empty).Trim(' ', '/', '\\');
@@ -58,7 +63,7 @@ namespace Acklann.Templata.Extensions
             if (File.Exists(outFile)) return (outFile, -1);
 
             // Building the template.
-            int position = -1; string fileContent = "";
+            int position = -1; string fileContent = string.Empty;
             templatePath = Template.Find(Path.GetFileName(templatePath), templateDirectories);
             if (!string.IsNullOrEmpty(templatePath))
             {
