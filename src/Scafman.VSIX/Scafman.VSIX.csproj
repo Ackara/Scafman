@@ -24,8 +24,8 @@
     <ProjectGuid>{FEB31E1B-30B9-40B2-BCAC-EE90024B6152}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Acklann.Templata</RootNamespace>
-    <AssemblyName>Templata.VSIX</AssemblyName>
+    <RootNamespace>Acklann.Scafman</RootNamespace>
+    <AssemblyName>Scafman.VSIX</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -259,9 +259,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Templata\Templata.csproj">
+    <ProjectReference Include="..\Scafman\Scafman.csproj">
       <Project>{afd6e520-eb87-4b64-b7cf-f3888721fcd0}</Project>
-      <Name>Templata</Name>
+      <Name>Scafman</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -292,11 +292,4 @@
   <Import Project="..\..\packages\Microsoft.VisualStudio.SDK.EmbedInteropTypes.15.0.10\build\Microsoft.VisualStudio.SDK.EmbedInteropTypes.targets" Condition="Exists('..\..\packages\Microsoft.VisualStudio.SDK.EmbedInteropTypes.15.0.10\build\Microsoft.VisualStudio.SDK.EmbedInteropTypes.targets')" />
   <Import Project="..\..\packages\Microsoft.VSSDK.BuildTools.15.9.3041\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\..\packages\Microsoft.VSSDK.BuildTools.15.9.3041\build\Microsoft.VSSDK.BuildTools.targets')" />
   <Import Project="..\..\packages\NuGet.VisualStudio.4.9.4\build\NuGet.VisualStudio.targets" Condition="Exists('..\..\packages\NuGet.VisualStudio.4.9.4\build\NuGet.VisualStudio.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

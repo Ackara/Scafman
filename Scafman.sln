@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.539
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Templata", "source\Templata\Templata.csproj", "{AFD6E520-EB87-4B64-B7CF-F3888721FCD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scafman", "src\Scafman\Scafman.csproj", "{AFD6E520-EB87-4B64-B7CF-F3888721FCD0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Templata.MSTest", "tests\Templata.MSTest\Templata.MSTest.csproj", "{C6D09F2E-E309-4048-A501-D234C7C191A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scafman.MSTest", "tests\Scafman.MSTest\Scafman.MSTest.csproj", "{C6D09F2E-E309-4048-A501-D234C7C191A8}"
 EndProject
 Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "build", "build\build.pssproj", "{6F3C1FC2-BF6B-4974-AEC9-54E5952103E0}"
 EndProject
@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".misc", ".misc", "{4F744B8E
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Templata.VSIX", "source\Templata.VSIX\Templata.VSIX.csproj", "{FEB31E1B-30B9-40B2-BCAC-EE90024B6152}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scafman.VSIX", "src\Scafman.VSIX\Scafman.VSIX.csproj", "{FEB31E1B-30B9-40B2-BCAC-EE90024B6152}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

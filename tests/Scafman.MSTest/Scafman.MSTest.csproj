@@ -2,12 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-
-    <IsPackable>false</IsPackable>
-
-    <RootNamespace>Acklann.Templata</RootNamespace>
-
     <LangVersion>7.1</LangVersion>
+    <RootNamespace>Acklann.Scafman</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,13 +17,13 @@
     <PackageReference Include="Shouldly" Version="3.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\source\Templata\Templata.csproj" />
-  </ItemGroup>
-
   <ItemGroup Label="mock-data">
     <None Include="samples\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Scafman\Scafman.csproj" />
   </ItemGroup>
 </Project>
