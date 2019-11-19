@@ -3,6 +3,20 @@ using System.Collections.Generic;
 
 namespace Acklann.Templata
 {
+    public readonly struct IntellisenseItem
+    {
+        public IntellisenseItem(string title, string description, string text)
+        {
+            Title = title;
+            FullText = text;
+            Description = description;
+        }
+
+        public readonly string Title, Description, FullText;
+
+        public override string ToString() => $"{Title}: {Description}";
+    }
+
     public class Intellisense
     {
         internal const int DEFAULT_LIMIT = 3;
@@ -15,7 +29,7 @@ namespace Acklann.Templata
             if (startIndex == -1) return new IntellisenseItem[0];
 
             var matches = new List<IntellisenseItem>(take);
-            string term = input.Substring(startIndex).TrimStart('@', '(', ' '), command = null;
+            string term = input.Substring(startIndex).TrimStart('@', '(', ' '), command;
 
             int count = 0; ItemGroup item;
             for (int i = 0; i < options.Length; i++)
@@ -39,19 +53,5 @@ namespace Acklann.Templata
         {
             return GetOptions(input, ItemGroup.ReadFile(configurationFile), take);
         }
-    }
-
-    public readonly struct IntellisenseItem
-    {
-        public IntellisenseItem(string title, string description, string text)
-        {
-            Title = title;
-            FullText = text;
-            Description = description;
-        }
-
-        public readonly string Title, Description, FullText;
-
-        public override string ToString() => $"{Title}: {Description}";
     }
 }

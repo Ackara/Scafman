@@ -62,7 +62,7 @@ namespace Acklann.Templata
             public bool CreateTemplateIfMissing { get; set; } = true;
 
             [Category(nameof(General))]
-            [DisplayName("Preferred diff tool.")]
+            [DisplayName("Preferred diff tool")]
             [Description("The absolute path the preferred diff tool.")]
             public string DiffTool { get; set; }
 
