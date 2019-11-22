@@ -220,7 +220,6 @@ namespace Acklann.Scafman
 
         internal static string Find(string[] templateFiles, string filename)
         {
-            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
             filename = Path.GetFileName(filename);
 
             // Attemp #1: Checking to see if I can get an exact match first.

@@ -50,7 +50,7 @@
         </Strings>
       </Button>
 
-      <Button guid="CmdSet" id="CompareFileWithTemplateCommandId">
+      <Button guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId">
         <Icon guid="ImageCatalogGuid" id="CompareFiles" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -83,7 +83,7 @@
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="CompareFileWithTemplateCommandId" priority="3">
+    <CommandPlacement guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId" priority="3">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
@@ -102,7 +102,7 @@
 
   <VisibilityConstraints>
     <VisibilityItem guid="CmdSet" id="CurrentLevelCommandId" context="UICONTEXT_SolutionExists" />
-    <VisibilityItem guid="CmdSet" id="CompareFileWithTemplateCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId" context="UICONTEXT_SolutionExists" />
   </VisibilityConstraints>
 
   <Symbols>
@@ -111,7 +111,6 @@
     <GuidSymbol name="CmdSet" value="{069838a4-a734-4fed-bc02-ef643489a6e7}">
       <!-- Groups -->
       <IDSymbol name="VSToolsMenuGroup" value="0x1020" />
-      <IDSymbol name="FileContextMenuGroup" value="0x101" />
       <IDSymbol name="ActionCommandGroup" value="0x103" />
       <IDSymbol name="MiscCommandGroup" value="0x104" />
 
@@ -124,7 +123,7 @@
       <IDSymbol name="GotoConfigurationPageCommandId" value="0x303" />
 
       <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x330" />
-      <IDSymbol name="CompareFileWithTemplateCommandId" value="0x331" />
+      <IDSymbol name="CompareActiveDocumentWithTemplateCommandId" value="0x331" />
       <IDSymbol name="OpenItemGroupConfigurationFileCommandId" value="0x333" />
     </GuidSymbol>
   </Symbols>

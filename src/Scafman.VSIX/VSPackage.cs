@@ -42,11 +42,13 @@ namespace Acklann.Scafman
             if (commandService != null)
             {
                 commandService.AddCommand(new OleMenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
+
+                commandService.AddCommand(new OleMenuCommand(OnCompareActiveDocumentWithTemplateCommandInvoked, null, OnActiveDocumentStatusQueried, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CompareActiveDocumentWithTemplateCommandId)));
 
                 commandService.AddCommand(new OleMenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
                 commandService.AddCommand(new OleMenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnCompareFileWithTemplateCommandInvoked, null, OnCompareFileWithTemplateCommandStatusQueried, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CompareFileWithTemplateCommandId)));
+                
+                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
             }
         }
 
@@ -69,7 +71,7 @@ namespace Acklann.Scafman
 
         // ==================== Command Handlers ==================== //
 
-        private void OnCompareFileWithTemplateCommandStatusQueried(object sender, EventArgs e)
+        private void OnActiveDocumentStatusQueried(object sender, EventArgs e)
         {
             if (sender is OleMenuCommand command)
             {
@@ -77,16 +79,16 @@ namespace Acklann.Scafman
             }
         }
 
-        private void OnCompareFileWithTemplateCommandInvoked(object sender, EventArgs e)
+        private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
         {
-            string activeFile = _dte.ActiveDocument?.FullName;
-            if (!string.IsNullOrEmpty(activeFile))
+            string documentPath = _dte.ActiveDocument?.FullName;
+            if (!string.IsNullOrEmpty(documentPath))
             {
-                string templateFile = Template.Find(activeFile, ConfigurationPage.UserTemplateDirectories);
+                string templateFile = Template.Find(documentPath, ConfigurationPage.UserTemplateDirectories);
 
                 if (ConfigurationPage.ShouldCreateTemplateIfMissing && string.IsNullOrEmpty(templateFile))
                 {
-                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(activeFile));
+                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
                     string folder = Path.GetDirectoryName(ConfigurationPage.UserTemplateDirectory);
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                     File.Create(templateFile).Dispose();
@@ -94,7 +96,7 @@ namespace Acklann.Scafman
 
                 if (!string.IsNullOrEmpty(templateFile))
                 {
-                    _dte.LaunchDiffTool(activeFile, templateFile);
+                    _dte.LaunchDiffTool(documentPath, templateFile);
                 }
             }
         }
