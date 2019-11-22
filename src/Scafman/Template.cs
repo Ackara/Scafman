@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public class Template
     {

@@ -16,6 +16,10 @@ namespace <#= Host.ResolveAssemblyReference("$(RootNamespace)") #>
 {
 	public static class <#= Path.GetFileNameWithoutExtension(Host.TemplateFile) #>
 	{
+		public const string Name = "<#= Host.ResolveAssemblyReference("$(Title)") #>";
+		
+		public const string Version = "<#= Host.ResolveAssemblyReference("$(Version)") #>";
+
 		<# GenerateMembers(); #>
 	}
 }

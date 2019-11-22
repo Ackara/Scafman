@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public readonly struct ProjectContext
     {

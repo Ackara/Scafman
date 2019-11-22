@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public class ConfigurationPage
     {

@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Text;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public static class NPM
     {

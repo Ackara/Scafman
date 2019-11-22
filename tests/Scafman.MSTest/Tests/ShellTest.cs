@@ -3,7 +3,7 @@ using Shouldly;
 using System.IO;
 using System.Text;
 
-namespace Acklann.Templata.MSTest.Tests
+namespace Acklann.Scafman.MSTest.Tests
 {
     [TestClass]
     public class ShellTest
@@ -65,13 +65,13 @@ namespace Acklann.Templata.MSTest.Tests
 
         private static ProjectContext CreateContext()
         {
-            string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Templata));
+            string rootFolder = Path.Combine(Path.GetTempPath(), nameof(Scafman));
             string sln = Path.Combine(rootFolder, "example.sln");
             string proj = Path.Combine(rootFolder, "example/example.proj");
             string item = Path.Combine(rootFolder, "example/Class1.cs");
             var selection = new string[] { item };
 
-            return new ProjectContext(sln, proj, item, selection, nameof(Templata), nameof(Acklann), "0.0.1");
+            return new ProjectContext(sln, proj, item, selection, nameof(Scafman), nameof(Acklann), "0.0.1");
         }
     }
 }

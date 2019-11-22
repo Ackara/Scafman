@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Acklann.Templata.Tests
+namespace Acklann.Scafman.Tests
 {
     [TestClass]
     public class IntellisenseTest

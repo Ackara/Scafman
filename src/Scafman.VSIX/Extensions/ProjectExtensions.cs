@@ -4,7 +4,7 @@ using NuGet.VisualStudio;
 using System;
 using System.IO;
 
-namespace Acklann.Templata.Extensions
+namespace Acklann.Scafman.Extensions
 {
     internal static class ProjectExtensions
     {
@@ -84,15 +84,15 @@ namespace Acklann.Templata.Extensions
 
             if (!nuget.IsPackageInstalled(project, package.Name))
             {
-                status.Text = $"{Vsix.Name} | Installing {package}...";
+                status.Text = $"{Symbol.Name} | Installing {package}...";
                 status.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationSync);
 
                 try
                 {
                     installer.InstallPackage(null, project, package.Name, package.Version, false);
-                    status.Text = $"{Vsix.Name} | Installed {package}";
+                    status.Text = $"{Symbol.Name} | Installed {package}";
                 }
-                catch { status.Text = $"{Vsix.Name} | Unable to install {package}"; }
+                catch { status.Text = $"{Symbol.Name} | Unable to install {package}"; }
                 finally { status.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationSync); }
             }
         }

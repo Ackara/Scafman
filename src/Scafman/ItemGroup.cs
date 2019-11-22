@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay()}")]
     public struct ItemGroup

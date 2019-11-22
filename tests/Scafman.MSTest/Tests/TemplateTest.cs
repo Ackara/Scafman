@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Acklann.Templata.Tests
+namespace Acklann.Scafman.Tests
 {
     [TestClass]
     public class TemplateTest
@@ -83,8 +83,8 @@ namespace Acklann.Templata.Tests
         [DataRow(@".\viewModel\person.cs", @"Models\viewModel")]
         public void Can_determine_a_project_subfolder(string relativePath, string expected)
         {
-            var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Templata), "src", "Foo");
-            var location = Path.Combine(Path.GetTempPath(), nameof(Templata), "src", "Foo", "Models");
+            var projectFolder = Path.Combine(Path.GetTempPath(), nameof(Scafman), "src", "Foo");
+            var location = Path.Combine(Path.GetTempPath(), nameof(Scafman), "src", "Foo", "Models");
 
             var result = Template.GetSubfolder(relativePath, projectFolder, location);
             result.ShouldBe(expected, StringCompareShould.IgnoreCase);
@@ -95,7 +95,7 @@ namespace Acklann.Templata.Tests
         {
             // Arrange
             var text = File.ReadAllText(SampleFactory.GetFile("~Controller.cst").FullName);
-            var baseFolder = Path.Combine(Path.GetTempPath(), nameof(Templata));
+            var baseFolder = Path.Combine(Path.GetTempPath(), nameof(Scafman));
             var outFile = Path.Combine(baseFolder, "src", "Core", "Models", "Person.cs");
 
             var context = new ProjectContext(
@@ -103,8 +103,8 @@ namespace Acklann.Templata.Tests
                 Path.Combine(baseFolder, "src", "Core", "Core.csproj"),
                 outFile,
                 new string[] { },
-                $"{nameof(Templata)}.Web",
-                nameof(Templata),
+                $"{nameof(Scafman)}.Web",
+                nameof(Scafman),
                 "0.0.1"
                 );
 

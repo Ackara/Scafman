@@ -3,7 +3,7 @@
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
   <Include href="KnownImageIds.vsct" />
-  <!-- Product: Template Manager -->
+  <!-- Product: Scafman -->
 
   <Commands package="Package">
     <Groups>
@@ -11,63 +11,42 @@
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
 
-      <Group guid="CmdSet" id="ProjectContextMenuGroup" priority="0x0100">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
-      </Group>
-
-      <Group guid="CmdSet" id="FileContextMenuGroup" priority="0x0100">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
-      </Group>
-
-      <Group guid="CmdSet" id="MiscCommandGroup" />
       <Group guid="CmdSet" id="ActionCommandGroup" />
+      <Group guid="CmdSet" id="MiscCommandGroup" />
     </Groups>
 
     <Menus>
-      <Menu type="Menu" guid="CmdSet" id="ToolsMenuId" priority="1">
+      <Menu type="Menu" guid="CmdSet" id="MainMenuId" priority="1">
         <Parent guid="CmdSet" id="VSToolsMenuGroup" />
         <Strings>
-          <MenuText>Template Manager</MenuText>
-          <ButtonText>Template Manager</ButtonText>
+          <MenuText>Scafman</MenuText>
+          <ButtonText>Scafman</ButtonText>
         </Strings>
       </Menu>
     </Menus>
 
     <Buttons>
       <Button guid="CmdSet" id="CurrentLevelCommandId">
+        <Icon guid="ImageCatalogGuid" id="NewItem"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Open Template Manager</ButtonText>
-          <CommandName>OpenTemplateManagerAtSelectedItem</CommandName>
-          <ToolTipText>Open the Template Manager at this directory.</ToolTipText>
-        </Strings>
-      </Button>
-
-      <Button guid="CmdSet" id="ProjectLevelCommandId">
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Open Template Manager at Project Level</ButtonText>
-          <CommandName>OpenTemplateManagerAtProjectLevel</CommandName>
+          <ButtonText>Add New Template</ButtonText>
         </Strings>
       </Button>
 
       <Button guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
-        <Icon guid="ImageCatalogGuid" id="SettingsFile" />
-        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>AllowVisibilityChangeOnToolBar</CommandFlag>
         <Strings>
           <ButtonText>Open Item Group Configuration File</ButtonText>
-          <CommandName>OpenItemGroupConfigurationFile</CommandName>
         </Strings>
       </Button>
 
       <Button guid="CmdSet" id="OpenTemplateDirectoryCommandId">
         <Strings>
           <ButtonText>Open Template Directory</ButtonText>
-          <CommandName>OpenTemplateFolder</CommandName>
         </Strings>
       </Button>
 
@@ -78,11 +57,10 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Compare With Template</ButtonText>
-          <CommandName>CompareWithActiveDocument</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="CmdSet" id="ConfigurationPageCommandId">
+      <Button guid="CmdSet" id="GotoConfigurationPageCommandId">
         <Icon guid="ImageCatalogGuid" id="Settings" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -94,18 +72,14 @@
 
   <CommandPlacements>
     <CommandPlacement guid="CmdSet" id="ActionCommandGroup" priority="1">
-      <Parent guid="CmdSet" id="ToolsMenuId" />
+      <Parent guid="CmdSet" id="MainMenuId" />
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="MiscCommandGroup" priority="2">
-      <Parent guid="CmdSet" id="ToolsMenuId" />
+      <Parent guid="CmdSet" id="MainMenuId" />
     </CommandPlacement>
 
     <CommandPlacement guid="CmdSet" id="CurrentLevelCommandId" priority="1">
-      <Parent guid="CmdSet" id="ActionCommandGroup" />
-    </CommandPlacement>
-
-    <CommandPlacement guid="CmdSet" id="ProjectLevelCommandId" priority="2">
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
@@ -121,14 +95,13 @@
       <Parent guid="CmdSet" id="ActionCommandGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="ConfigurationPageCommandId" priority="1">
+    <CommandPlacement guid="CmdSet" id="GotoConfigurationPageCommandId" priority="1">
       <Parent guid="CmdSet" id="MiscCommandGroup" />
     </CommandPlacement>
   </CommandPlacements>
 
   <VisibilityConstraints>
     <VisibilityItem guid="CmdSet" id="CurrentLevelCommandId" context="UICONTEXT_SolutionExists" />
-    <VisibilityItem guid="CmdSet" id="ProjectLevelCommandId" context="UICONTEXT_SolutionExists" />
     <VisibilityItem guid="CmdSet" id="CompareFileWithTemplateCommandId" context="UICONTEXT_SolutionExists" />
   </VisibilityConstraints>
 
@@ -139,21 +112,19 @@
       <!-- Groups -->
       <IDSymbol name="VSToolsMenuGroup" value="0x1020" />
       <IDSymbol name="FileContextMenuGroup" value="0x101" />
-      <IDSymbol name="ProjectContextMenuGroup" value="0x102" />
       <IDSymbol name="ActionCommandGroup" value="0x103" />
       <IDSymbol name="MiscCommandGroup" value="0x104" />
 
-      <IDSymbol name="ToolsMenuId" value="0x201" />
+      <!-- Menu -->
+      <IDSymbol name="MainMenuId" value="0x201" />
 
       <!-- Commands -->
       <IDSymbol name="CurrentLevelCommandId" value="0x300" />
-      <IDSymbol name="ProjectLevelCommandId" value="0x301" />
 
-      <IDSymbol name="ConfigurationPageCommandId" value="0x303" />
+      <IDSymbol name="GotoConfigurationPageCommandId" value="0x303" />
 
       <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x330" />
       <IDSymbol name="CompareFileWithTemplateCommandId" value="0x331" />
-      <IDSymbol name="AddFileToTemplateDirectoryCommandId" value="0x332" />
       <IDSymbol name="OpenItemGroupConfigurationFileCommandId" value="0x333" />
     </GuidSymbol>
   </Symbols>

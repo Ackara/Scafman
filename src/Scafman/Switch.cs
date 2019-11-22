@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     [Flags]
     public enum Switch

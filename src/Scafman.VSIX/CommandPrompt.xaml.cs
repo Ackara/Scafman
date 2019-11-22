@@ -1,8 +1,8 @@
-﻿using Acklann.Templata.Models;
+﻿using Acklann.Scafman.Models;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public partial class CommandPrompt : Window
     {
@@ -11,7 +11,7 @@ namespace Acklann.Templata
             InitializeComponent();
             if (context != null) DataContext = _model = context;
 
-            Title = Vsix.Name;
+            Title = Symbol.Name;
             SizeToContent = SizeToContent.Height;
             WindowStartupLocation = (_model.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }

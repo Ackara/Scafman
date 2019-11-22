@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Acklann.Templata.Models
+namespace Acklann.Scafman.Models
 {
     public class SearchItem : INotifyPropertyChanged
     {

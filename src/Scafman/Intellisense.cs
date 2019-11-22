@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     public readonly struct IntellisenseItem
     {

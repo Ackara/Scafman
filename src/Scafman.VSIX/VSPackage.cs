@@ -1,6 +1,6 @@
 ﻿using Acklann.GlobN;
-using Acklann.Templata.Extensions;
-using Acklann.Templata.Models;
+using Acklann.Scafman.Extensions;
+using Acklann.Scafman.Models;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft;
@@ -16,13 +16,13 @@ using System.Threading;
 using System.Windows.Interop;
 using Task = System.Threading.Tasks.Task;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     [Guid(Symbol.Package.GuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [InstalledProductRegistration("#110", "#112", Vsix.Version, IconResourceID = 400)]
+    [InstalledProductRegistration("#110", "#112", Symbol.Version, IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideOptionPage(typeof(ConfigurationPage.General), Vsix.Name, nameof(ConfigurationPage.General), 0, 0, true)]
+    [ProvideOptionPage(typeof(ConfigurationPage.General), Symbol.Name, nameof(ConfigurationPage.General), 0, 0, true)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
@@ -42,8 +42,7 @@ namespace Acklann.Templata
             if (commandService != null)
             {
                 commandService.AddCommand(new OleMenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnProjectLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ProjectLevelCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.ConfigurationPageCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
 
                 commandService.AddCommand(new OleMenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
                 commandService.AddCommand(new OleMenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
@@ -115,11 +114,6 @@ namespace Acklann.Templata
             ExecuteTemplateCommand(Location.Current, null);
         }
 
-        private void OnProjectLevelCommandInvoked(object sender, EventArgs e)
-        {
-            ExecuteTemplateCommand(Location.Project, null);
-        }
-
         private void OnConfigurationCommandInvoked(object sender, EventArgs e)
         {
             ShowOptionPage(typeof(ConfigurationPage.General));
@@ -179,7 +173,7 @@ namespace Acklann.Templata
             }
         }
 
-        #region Private Members
+        #region Backing Members
 
         private DTE2 _dte;
         private CommandPromptViewModel _model;
@@ -198,6 +192,6 @@ namespace Acklann.Templata
 #endif
         }
 
-        #endregion Private Members
+        #endregion Backing Members
     }
 }

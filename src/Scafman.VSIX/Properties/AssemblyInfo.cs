@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Powerbar")]
+[assembly: AssemblyTitle("Scafman.VSIX")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Tecari")]
-[assembly: AssemblyProduct("Powerbar")]
-[assembly: AssemblyCopyright("Copyright © 2019, Tecari")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Scafman.VSIX")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,16 +28,6 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
-// [assembly: AssemblyVersion("0.1.8")]
-[assembly: AssemblyVersion("0.1.8")]
-[assembly: AssemblyFileVersion("0.1.8")]
-[assembly: AssemblyInformationalVersion("0.1.8")]
-
-
-
-
-
-
-
-
-
+// [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     internal static class Helper
     {

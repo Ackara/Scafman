@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using Shouldly;
 using System.IO;
 
-namespace Acklann.Templata.Tests
+namespace Acklann.Scafman.Tests
 {
     [TestClass]
     public class PackageTest

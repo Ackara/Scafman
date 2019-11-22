@@ -1,4 +1,4 @@
-﻿namespace Acklann.Templata
+﻿namespace Acklann.Scafman
 {
     public readonly struct Command : System.IEquatable<Command>
     {

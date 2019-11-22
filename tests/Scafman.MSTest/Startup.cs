@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 [assembly: Reporter(typeof(DiffReporter))]
 [assembly: ApprovedFolder("approved-results")]
 
-namespace Acklann.Templata
+namespace Acklann.Scafman
 {
     [TestClass]
     public class Startup

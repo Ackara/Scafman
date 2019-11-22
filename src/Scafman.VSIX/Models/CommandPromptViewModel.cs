@@ -5,9 +5,9 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Acklann.Templata.Models
+namespace Acklann.Scafman.Models
 {
-    [XmlRoot(nameof(Templata))]
+    [XmlRoot(nameof(Scafman))]
     public class CommandPromptViewModel : INotifyPropertyChanged
     {
         public CommandPromptViewModel() : this(GetDefaultFilePath())
@@ -222,7 +222,7 @@ namespace Acklann.Templata.Models
             });
 
             _intellisenseActivated = on;
-            System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | intellisense: {_intellisenseActivated}");
+            System.Diagnostics.Debug.WriteLine($"{nameof(Scafman)} | intellisense: {_intellisenseActivated}");
         }
 
         private void UpdateIntelliList(IntellisenseItem[] items)
@@ -251,7 +251,7 @@ namespace Acklann.Templata.Models
         private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _selectedIndex;
         private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _project = string.Empty;
 
-        private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Templata), "state.xml");
+        private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Scafman), "state.xml");
 
         #endregion Backing Variables
     }

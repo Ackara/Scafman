@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Acklann.Templata.Extensions
+namespace Acklann.Scafman.Extensions
 {
     internal static class DTEExtenstions
     {
