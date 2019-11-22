@@ -10,6 +10,7 @@ namespace Acklann.Scafman
         AddFolder = 2,
         Rename = 4,
         NugetPackage = 8,
-        NPMPackage = 16
+        NPMPackage = 16,
+        ProjectIsRoot = 32
     }
 }

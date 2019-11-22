@@ -209,7 +209,7 @@ namespace Acklann.Scafman.Models
 
         public Task SaveAsync() => Task.Run(() => { try { Save(); } catch (UnauthorizedAccessException) { } });
 
-        public void ActivateIntellisense(bool on)
+        public void SetIntellisense(bool on)
         {
 #pragma warning disable VSTHRD110 // Observe result of async calls
             if (on) Task.Run(() =>

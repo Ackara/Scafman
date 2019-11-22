@@ -11,8 +11,8 @@ namespace Acklann.Scafman.Tests
     public class TemplateTest
     {
         [DataTestMethod]
-        [DataRow("Person.cst", "~.cst")]
         [DataRow("package.json", null)]
+        [DataRow("Person.cst", "~.cst")]
         [DataRow("IAnimal.cst", "I~.cst")]
         [DataRow("Subscriber.cst", "~.cst")]
         [DataRow("Symbol.cst", "symbol.cst")]

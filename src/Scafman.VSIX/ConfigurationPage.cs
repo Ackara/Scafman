@@ -9,7 +9,6 @@ namespace Acklann.Scafman
 {
     public class ConfigurationPage
     {
-        internal static bool ShouldCreateTemplateIfMissing;
         internal static string UserItemGroupFile, SolutionFolderName, DiffExecutable;
         internal static string[] UserTemplateDirectories;
 
@@ -22,15 +21,15 @@ namespace Acklann.Scafman
         {
             public General()
             {
-                var knownTools = new string[]
+                var knownDiffToolsInstallationPaths = new string[]
                 {
                     @"C:\Program Files\Beyond Compare 4\BCompare.exe"
                 };
 
-                foreach (string filePath in knownTools)
-                    if (File.Exists(filePath))
+                foreach (string executablePath in knownDiffToolsInstallationPaths)
+                    if (File.Exists(executablePath))
                     {
-                        DiffTool = filePath;
+                        DiffTool = executablePath;
                         break;
                     }
             }
@@ -85,7 +84,6 @@ namespace Acklann.Scafman
             {
                 DiffExecutable = DiffTool;
                 SolutionFolderName = DefaultSolutionExplorerFolderName;
-                ShouldCreateTemplateIfMissing = CreateTemplateIfMissing;
                 UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
 
                 if (TemplateDirectories?.Length > 0)
@@ -94,7 +92,6 @@ namespace Acklann.Scafman
                     UserTemplateDirectories = _builtInTemplateFolders;
             }
         }
-
         private class StringArrayConverter : TypeConverter
         {
             // LINK: https://stackoverflow.com/questions/24291249/dialogpage-string-array-not-persisted

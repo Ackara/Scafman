@@ -1,6 +1,7 @@
 ﻿using Acklann.GlobN;
 using Acklann.Scafman.Extensions;
 using Acklann.Scafman.Models;
+using Acklann.Scafman.Views;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft;
@@ -9,10 +10,10 @@ using Microsoft.VisualStudio.Shell;
 using NuGet.VisualStudio;
 using System;
 using System.ComponentModel.Design;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 using System.Windows.Interop;
 using Task = System.Threading.Tasks.Task;
 
@@ -23,32 +24,31 @@ namespace Acklann.Scafman
     [InstalledProductRegistration("#110", "#112", Symbol.Version, IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideOptionPage(typeof(ConfigurationPage.General), Symbol.Name, nameof(ConfigurationPage.General), 0, 0, true)]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    //[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
-        //var defaultBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+        //var color = Microsoft.VisualStudio.PlatformUI.VSColorTheme.GetThemedColor(Microsoft.VisualStudio.PlatformUI.EnvironmentColors.ToolWindowBackgroundColorKey)
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            //await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var settings = (ConfigurationPage.General)GetDialogPage(typeof(ConfigurationPage.General));
             _dte = (await GetServiceAsync(typeof(DTE)) as DTE2);
             _model = await CommandPromptViewModel.RestoreAsync();
-
             Assumes.Present(_dte);
 
             var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
             if (commandService != null)
             {
-                commandService.AddCommand(new OleMenuCommand(OnCurrentLevelCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CurrentLevelCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnAddItemFromTemplateCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.AddItemFromTemplateCommandId)));
 
                 commandService.AddCommand(new OleMenuCommand(OnCompareActiveDocumentWithTemplateCommandInvoked, null, OnActiveDocumentStatusQueried, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CompareActiveDocumentWithTemplateCommandId)));
 
                 commandService.AddCommand(new OleMenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnOpenGrougConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
-                
-                commandService.AddCommand(new OleMenuCommand(OnConfigurationCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnOpenGroupConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
+
+                commandService.AddCommand(new OleMenuCommand(OnGotoConfigurationPageCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
             }
         }
 
@@ -69,59 +69,7 @@ namespace Acklann.Scafman
             else return (_model.UserInput ?? string.Empty).Trim();
         }
 
-        // ==================== Command Handlers ==================== //
-
-        private void OnActiveDocumentStatusQueried(object sender, EventArgs e)
-        {
-            if (sender is OleMenuCommand command)
-            {
-                command.Enabled = _dte.ActiveDocument?.FullName != null;
-            }
-        }
-
-        private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
-        {
-            string documentPath = _dte.ActiveDocument?.FullName;
-            if (!string.IsNullOrEmpty(documentPath))
-            {
-                string templateFile = Template.Find(documentPath, ConfigurationPage.UserTemplateDirectories);
-
-                if (ConfigurationPage.ShouldCreateTemplateIfMissing && string.IsNullOrEmpty(templateFile))
-                {
-                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
-                    string folder = Path.GetDirectoryName(ConfigurationPage.UserTemplateDirectory);
-                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                    File.Create(templateFile).Dispose();
-                }
-
-                if (!string.IsNullOrEmpty(templateFile))
-                {
-                    _dte.LaunchDiffTool(documentPath, templateFile);
-                }
-            }
-        }
-
-        private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
-        {
-            if (Directory.Exists(ConfigurationPage.UserTemplateDirectory)) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
-        }
-
-        private void OnOpenGrougConfigurationFileCommandInvoked(object sender, EventArgs e)
-        {
-            if (File.Exists(ConfigurationPage.UserItemGroupFile)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
-        }
-
-        private void OnCurrentLevelCommandInvoked(object sender, EventArgs e)
-        {
-            ExecuteTemplateCommand(Location.Current, null);
-        }
-
-        private void OnConfigurationCommandInvoked(object sender, EventArgs e)
-        {
-            ShowOptionPage(typeof(ConfigurationPage.General));
-        }
-
-        private void ExecuteTemplateCommand(Location location, string command = null)
+        private void AddItemFromTemplate(Location location, string command = null)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -172,6 +120,64 @@ namespace Acklann.Scafman
                         else if (!string.IsNullOrEmpty(context.ProjectFilePath)) NPM.Install(Path.GetDirectoryName(context.ProjectFilePath), item.Input);
                         break;
                 }
+            }
+        }
+
+        // ==================== Command Handlers ==================== //
+
+        private void OnAddItemFromTemplateCommandInvoked(object sender, EventArgs e)
+        {
+            AddItemFromTemplate(Location.Current, null);
+        }
+
+        private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
+        {
+            string documentPath = _dte.ActiveDocument?.FullName;
+            if (string.IsNullOrEmpty(documentPath)) return;
+
+            string templateFile = Template.Find(documentPath, ConfigurationPage.UserTemplateDirectories);
+
+            if (string.IsNullOrEmpty(templateFile))
+            {
+                DialogResult answer = MessageBox.Show(
+                    $"I could not find a matching template. Do you want to create one?",
+                    $"Compare Active Document with Template | {Symbol.Name}",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+
+                if (answer == DialogResult.Yes)
+                {
+                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
+                    if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory)) Directory.CreateDirectory(ConfigurationPage.UserTemplateDirectory);
+                    File.Create(templateFile).Dispose();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(templateFile))
+            {
+                _dte.LaunchDiffTool(documentPath, templateFile);
+            }
+        }
+
+        private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
+        {
+            if (Directory.Exists(ConfigurationPage.UserTemplateDirectory)) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
+        }
+
+        private void OnOpenGroupConfigurationFileCommandInvoked(object sender, EventArgs e)
+        {
+            if (File.Exists(ConfigurationPage.UserItemGroupFile)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
+        }
+
+        private void OnGotoConfigurationPageCommandInvoked(object sender, EventArgs e)
+        {
+            ShowOptionPage(typeof(ConfigurationPage.General));
+        }
+
+        private void OnActiveDocumentStatusQueried(object sender, EventArgs e)
+        {
+            if (sender is OleMenuCommand command)
+            {
+                command.Enabled = _dte.ActiveDocument?.FullName != null;
             }
         }
 

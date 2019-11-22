@@ -18,13 +18,13 @@ namespace Acklann.Scafman
 			public const string GuidString = "069838a4-a734-4fed-bc02-ef643489a6e7";
 			public static readonly Guid Guid = new Guid("069838a4-a734-4fed-bc02-ef643489a6e7");
 			public const int VSToolsMenuGroup = 0x1020;
-			public const int ActionCommandGroup = 0x103;
+			public const int FileCommandGroup = 0x103;
 			public const int MiscCommandGroup = 0x104;
 			public const int MainMenuId = 0x201;
-			public const int CurrentLevelCommandId = 0x300;
+			public const int AddItemFromTemplateCommandId = 0x300;
+			public const int CompareActiveDocumentWithTemplateCommandId = 0x331;
 			public const int GotoConfigurationPageCommandId = 0x303;
 			public const int OpenTemplateDirectoryCommandId = 0x330;
-			public const int CompareActiveDocumentWithTemplateCommandId = 0x331;
 			public const int OpenItemGroupConfigurationFileCommandId = 0x333;
 		}
 	}

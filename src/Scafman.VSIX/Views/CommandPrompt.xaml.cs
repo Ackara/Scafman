@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace Acklann.Scafman
+namespace Acklann.Scafman.Views
 {
     public partial class CommandPrompt : Window
     {
@@ -10,7 +10,7 @@ namespace Acklann.Scafman
         {
             InitializeComponent();
             if (context != null) DataContext = _model = context;
-
+            
             Title = Symbol.Name;
             SizeToContent = SizeToContent.Height;
             WindowStartupLocation = (_model.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
@@ -35,11 +35,11 @@ namespace Acklann.Scafman
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense(true);
+                    if (_shiftKey?.IsDown ?? false) _model.SetIntellisense(true);
                     break;
 
                 case Key.OemSemicolon: // ')' key
-                    _model.ActivateIntellisense(false);
+                    _model.SetIntellisense(false);
                     break;
 
                 case Key.Up:
@@ -65,11 +65,11 @@ namespace Acklann.Scafman
                     break;
 
                 case Key.D0:
-                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense(false);
+                    if (_shiftKey?.IsDown ?? false) _model.SetIntellisense(false);
                     break;
 
                 case Key.OemComma:
-                    _model.ActivateIntellisense(false);
+                    _model.SetIntellisense(false);
                     break;
             }
         }
