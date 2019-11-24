@@ -1,4 +1,5 @@
-﻿using Acklann.GlobN;
+﻿
+using Acklann.GlobN;
 using Microsoft.VisualStudio.Shell;
 using NuGet.VisualStudio;
 using System;

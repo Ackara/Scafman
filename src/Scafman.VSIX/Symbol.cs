@@ -4,9 +4,9 @@ namespace Acklann.Scafman
 {
 	public static class Symbol
 	{
-		public const string Name = "Scanman";
+		public const string Name = "Scafman";
 		
-		public const string Version = "0.0.1";
+		public const string Version = "0.0.21";
 
 		public class Package
 		{
