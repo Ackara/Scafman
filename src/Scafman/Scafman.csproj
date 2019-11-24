@@ -4,14 +4,25 @@
     <RootNamespace>Acklann.Templata</RootNamespace>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <Copyright>Copyright © 2019, Tecari</Copyright>
-    <Company>Tecari</Company>
-    <AssemblyVersion>0.1.8</AssemblyVersion>
+
+  <PropertyGroup Label="Package">
+    <Title>Scafman</Title>
+    <Version>0.0.22</Version>
+    <AssemblyVersion>0.0.22</AssemblyVersion>
+    <Description>A template manager.</Description>
+
     <Authors>Ackara</Authors>
-    <PackageTags>new file powershell command</PackageTags>
-    <PackageVersion>0.1.8</PackageVersion>
+    <Company>Ackara</Company>
+    <Copyright>Copyright 2019 Ackara, All Rights Reserved.</Copyright>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
+
+    <PackageProjectUrl>https://github.com/Ackara/Scafman</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Ackara/Scafman.git</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/Ackara/Scafman/blob/master/changelog.md</PackageReleaseNotes>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>template manager add file package</PackageTags>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />

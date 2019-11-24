@@ -1,10 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="3c078121-2119-42af-9055-50abb4af5afe" Version="0.0.1" Language="en-US" Publisher="Ackara" />
-    <DisplayName>Template Manager</DisplayName>
-    <Description xml:space="preserve">A user file template system.</Description>
+    <Identity Id="3c078121-2119-42af-9055-50abb4af5afe" Version="0.0.22" Language="en-US" Publisher="Ackara" />
+    <DisplayName>Scafman</DisplayName>
+    <Description xml:space="preserve">A template manager.</Description>
+    <MoreInfo>https://github.com/Ackara/Scafman</MoreInfo>
     <Icon>Resources\Template.png</Icon>
+    <Tags>template manager add file package</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)" />
