@@ -1,0 +1,58 @@
+﻿<Window x:Class="Acklann.Scafman.Views.FilenamePrompt"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Acklann.Scafman.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        WindowStartupLocation="Manual"
+        SizeToContent="WidthAndHeight"
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        AllowsTransparency="True"
+        SourceInitialized="OnWindowSourceInitialized"
+        Width="{Binding Width, Mode=TwoWay}"
+        Left="{Binding Left, Mode=TwoWay}"
+        Top="{Binding Top, Mode=TwoWay}"
+        mc:Ignorable="d">
+    <d:Window.DataContext>
+        <vm:FilenamePromptViewModel CurrenntDirectory="C:\Users\John\Projects\Foo"
+                                    UserInput="Build\tasks.psake.ps1" />
+    </d:Window.DataContext>
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Style.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="{Binding FolderName}"
+                   FontWeight="SemiBold" />
+
+        <TextBox x:Name="InputBox"
+                 Text="{Binding UserInput, Mode=TwoWay}"
+                 PreviewKeyUp="OnKeyUp"
+                 Grid.Column="1" />
+
+        <TextBlock TextTrimming="CharacterEllipsis"
+                   Margin="0,6,0,0"
+                   Grid.Row="1"
+                   Grid.ColumnSpan="2">
+            <Run Text="Location:" />
+
+            <Run Text="{Binding CurrenntDirectory}" />
+        </TextBlock>
+    </Grid>
+</Window>

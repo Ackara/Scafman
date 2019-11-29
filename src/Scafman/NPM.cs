@@ -37,7 +37,7 @@ namespace Acklann.Scafman
             return true;
         }
 
-        public static bool Install(string projectFolder, Package package) => Install(projectFolder, package.Name, package.Version);
+        public static bool Install(string projectFolder, PackageID package) => Install(projectFolder, package.Name, package.Version);
 
         private static string ReadFile(string path)
         {

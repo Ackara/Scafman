@@ -1,16 +1,10 @@
-﻿
-using Acklann.GlobN;
-using Acklann.Scafman.Extensions;
-using Acklann.Scafman.Models;
-using Acklann.Scafman.Views;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft;
+﻿using Acklann.GlobN;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using NuGet.VisualStudio;
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -20,88 +14,96 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Acklann.Scafman
 {
-    [Guid(Symbol.Package.GuidString)]
+    [Guid(Metadata.Package.GuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [InstalledProductRegistration("#110", "#112", Symbol.Version, IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideOptionPage(typeof(ConfigurationPage.General), Symbol.Name, nameof(ConfigurationPage.General), 0, 0, true)]
-    //[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [InstalledProductRegistration("#110", "#112", Metadata.Version, IconResourceID = 500)]
+    [ProvideOptionPage(typeof(ConfigurationPage), Metadata.Name, ConfigurationPage.Category, 0, 0, true)]
+    //[ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
-        //var color = Microsoft.VisualStudio.PlatformUI.VSColorTheme.GetThemedColor(Microsoft.VisualStudio.PlatformUI.EnvironmentColors.ToolWindowBackgroundColorKey)
-
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            //await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _filePrompt = await Models.FilenamePromptViewModel.RestoreAsync();
+            _commandPrompt = await Models.CommandPromptViewModel.RestoreAsync();
 
-            var settings = (ConfigurationPage.General)GetDialogPage(typeof(ConfigurationPage.General));
-            _dte = (await GetServiceAsync(typeof(DTE)) as DTE2);
-            _model = await CommandPromptViewModel.RestoreAsync();
-            Assumes.Present(_dte);
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _dte = (await GetServiceAsync(typeof(EnvDTE.DTE)) as EnvDTE.DTE);
+            GetDialogPage(typeof(ConfigurationPage));
 
             var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
             if (commandService != null)
             {
-                commandService.AddCommand(new OleMenuCommand(OnAddItemFromTemplateCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.AddItemFromTemplateCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnAddNewItemCommandInvoked, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.AddNewItemCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnCompareActiveDocumentWithTemplateCommandInvoked, null, OnActiveDocumentStatusQueried, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.CompareActiveDocumentWithTemplateCommandId)));
+                commandService.AddCommand(new OleMenuCommand(OnExportActiveDocumentAsTemplateCommandInvoked, null, OnActiveDocumentStatusQueried, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.ExportActiveDocumentAsTemplateCommandId)));
 
-                commandService.AddCommand(new OleMenuCommand(OnCompareActiveDocumentWithTemplateCommandInvoked, null, OnActiveDocumentStatusQueried, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.CompareActiveDocumentWithTemplateCommandId)));
-
-                commandService.AddCommand(new OleMenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenTemplateDirectoryCommandId)));
-                commandService.AddCommand(new OleMenuCommand(OnOpenGroupConfigurationFileCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.OpenItemGroupConfigurationFileCommandId)));
-
-                commandService.AddCommand(new OleMenuCommand(OnGotoConfigurationPageCommandInvoked, new CommandID(Symbol.CmdSet.Guid, Symbol.CmdSet.GotoConfigurationPageCommandId)));
+                commandService.AddCommand(new MenuCommand(OnOpenTemplateDirectoryCommandInvoked, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.OpenTemplateDirectoryCommandId)));
+                commandService.AddCommand(new MenuCommand(OnOpenItemGroupConfigurationFileCommandInvoked, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.OpenItemGroupConfigurationFileCommandId)));
+                commandService.AddCommand(new MenuCommand(OnGotoConfigruationPageCommandInvoked, new CommandID(Metadata.CmdSet.Guid, Metadata.CmdSet.GotoConfigurationPageCommandId)));
             }
         }
 
-        private string PromptUser(string location)
+        private string GetCommandFromUser(string cwd)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            _model.Reset();
-            _model.Location = location;
+            _commandPrompt.Reset();
+            _commandPrompt.Location = cwd;
 
-            var dialog = new CommandPrompt(_model) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
+            var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
             bool? outcome = dialog.ShowDialog();
-#pragma warning disable VSTHRD110 // Observe result of async calls
-            _model.SaveAsync();
-#pragma warning restore VSTHRD110 // Observe result of async calls
+            _commandPrompt.SaveAsync();
 
             if (!outcome.HasValue || !outcome.Value) return null;
-            else return (_model.UserInput ?? string.Empty).Trim();
+            else return (_commandPrompt.UserInput ?? string.Empty).Trim();
         }
 
-        private void AddItemFromTemplate(Location location, string command = null)
+        private string GetFilenameFromUser(string cwd, string defaultName)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            Helper.GetContext(_dte, out Project project, out ProjectContext context);
-            _model.Project = project?.FullName;
-            string cwd = Helper.GetLocation(context, location);
-            if (string.IsNullOrEmpty(command)) command = PromptUser(cwd);
+            _filePrompt.Initialize(cwd, defaultName);
+            var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
+            dialog.Title = string.Format(LocalizedString.WindowTitleFormat, "Filename");
+            bool? outcome = dialog.ShowDialog();
+            _filePrompt.SaveAsync();
+
+            return ((outcome.HasValue && outcome.Value && _filePrompt.HasValidInput) ? _filePrompt.FullPath : null);
+        }
+
+        // ==================== Event Handlers ==================== //
+
+        private void OnAddNewItemCommandInvoked(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            _dte.GetContext(out EnvDTE.Project project, out ProjectContext context);
+
+            string command = null;
+            _commandPrompt.Project = context.ProjectFilePath;
+            string cwd = Helper.GetLocation(context);
+            if (string.IsNullOrEmpty(command)) command = GetCommandFromUser(cwd);
             if (string.IsNullOrEmpty(command)) return;
             PrintInfo(context);
 
-            if (location == Location.Solution) project = null;// The should force files to be added to a solution folder instead of the last selected project.
-
-            if (File.Exists(ConfigurationPage.UserItemGroupFile))
-                command = Template.ExpandItemGroups(command, ConfigurationPage.UserItemGroupFile);
+            if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath))
+                command = Template.ExpandItemGroups(command, ConfigurationPage.UserItemGroupConfigurationFilePath);
 
             IVsPackageInstaller installer = null; IComponentModel componentModel = null; IVsPackageInstallerServices nuget = null;
-
             foreach (Command item in Template.Interpret(command))
-            {
                 switch (item.Kind)
                 {
                     case Switch.AddFolder:
-                        (project ?? Helper.GetSolutionFolder(_dte)).AddFolder(item.Input.ExpandPath(cwd));
+                        (project ?? _dte.GetSolutionFolder()).AddFolder(item.Input.ExpandPath(cwd));
                         break;
 
                     case Switch.AddFile:
-                        (string filePath, int startPosition) = (project ?? Helper.GetSolutionFolder(_dte)).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.UserTemplateDirectories);
-                        if (File.Exists(filePath))
+                        (project ?? _dte.GetSolutionFolder()).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.GetAllTemplateDirectories(), out string newFilePath, out int startingPosition);
+                        if (File.Exists(newFilePath))
                         {
-                            VsShellUtilities.OpenDocument(this, filePath);
-                            Helper.MoveActiveDocumentCursorTo(startPosition);
+                            VsShellUtilities.OpenDocument(this, newFilePath);
+                            Helper.MoveActiveDocumentCursorTo(startingPosition);
                             try { _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument"); } catch (COMException) { }
                             _dte.ActiveDocument?.Activate();
                         }
@@ -121,18 +123,12 @@ namespace Acklann.Scafman
                         else if (!string.IsNullOrEmpty(context.ProjectFilePath)) NPM.Install(Path.GetDirectoryName(context.ProjectFilePath), item.Input);
                         break;
                 }
-            }
-        }
-
-        // ==================== Command Handlers ==================== //
-
-        private void OnAddItemFromTemplateCommandInvoked(object sender, EventArgs e)
-        {
-            AddItemFromTemplate(Location.Current, null);
         }
 
         private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             string documentPath = _dte.ActiveDocument?.FullName;
             if (string.IsNullOrEmpty(documentPath)) return;
 
@@ -142,12 +138,13 @@ namespace Acklann.Scafman
             {
                 DialogResult answer = MessageBox.Show(
                     $"I could not find a matching template. Do you want to create one?",
-                    $"Compare Active Document with Template | {Symbol.Name}",
+                    string.Format(windowTitleFormat, "Compare Active Document with Template"),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
 
                 if (answer == DialogResult.Yes)
                 {
                     templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
+
                     if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory)) Directory.CreateDirectory(ConfigurationPage.UserTemplateDirectory);
                     File.Create(templateFile).Dispose();
                 }
@@ -159,33 +156,84 @@ namespace Acklann.Scafman
             }
         }
 
+        private void OnExportActiveDocumentAsTemplateCommandInvoked(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            string documentPath = _dte.ActiveDocument?.FullName;
+            if (string.IsNullOrEmpty(documentPath)) return;
+
+            if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory))
+            {
+                DialogResult answer = MessageBox.Show(
+                    $"You have not specified a template directory yet. Do you want to?",
+                    string.Format(windowTitleFormat, "Set Template Directory"),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+
+                if (answer == DialogResult.Yes)
+                {
+                    ShowOptionPage(typeof(ConfigurationPage));
+                }
+
+                return;
+            }
+
+            string outPath = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
+            if (string.IsNullOrEmpty(outPath)) return;
+
+            string folder = Path.GetDirectoryName(outPath);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+            using (var inStream = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var outStream = new FileStream(outPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                inStream.CopyTo(outStream);
+                outStream.Flush();
+            }
+
+            VsShellUtilities.OpenDocument(this, outPath);
+        }
+
         private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
         {
             if (Directory.Exists(ConfigurationPage.UserTemplateDirectory)) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
         }
 
-        private void OnOpenGroupConfigurationFileCommandInvoked(object sender, EventArgs e)
+        private void OnOpenItemGroupConfigurationFileCommandInvoked(object sender, EventArgs e)
         {
-            if (File.Exists(ConfigurationPage.UserItemGroupFile)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupFile);
+            if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupConfigurationFilePath);
         }
 
-        private void OnGotoConfigurationPageCommandInvoked(object sender, EventArgs e)
+        private void OnGotoConfigruationPageCommandInvoked(object sender, EventArgs e)
         {
-            ShowOptionPage(typeof(ConfigurationPage.General));
+            ShowOptionPage(typeof(ConfigurationPage));
         }
 
         private void OnActiveDocumentStatusQueried(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (sender is OleMenuCommand command)
             {
-                command.Enabled = _dte.ActiveDocument?.FullName != null;
+                string documentPath = _dte.ActiveDocument?.FullName;
+                command.Enabled = documentPath != null;
+
+                if (Helper.AreEqual(command.CommandID, Metadata.CmdSet.Guid, Metadata.CmdSet.ExportActiveDocumentAsTemplateCommandId))
+                {
+                    command.Text = string.Format("Export {0} as Template", (Path.GetFileName(documentPath) ?? "Document"));
+                }
             }
         }
 
         #region Backing Members
 
-        private DTE2 _dte;
-        private CommandPromptViewModel _model;
+        internal const string
+            statusbarFormat = (Metadata.Name + ": {0}"),
+            windowTitleFormat = ("{0} | " + Metadata.Name);
+
+        private EnvDTE.DTE _dte;
+        private Models.FilenamePromptViewModel _filePrompt;
+        private Models.CommandPromptViewModel _commandPrompt;
 
         private void PrintInfo(ProjectContext context)
         {

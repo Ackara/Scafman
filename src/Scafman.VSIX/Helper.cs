@@ -1,22 +1,120 @@
-﻿using EnvDTE80;
+﻿using Acklann.GlobN;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using NuGet.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace Acklann.Scafman
 {
     internal static class Helper
     {
-        public static void GetContext(DTE2 dte, out EnvDTE.Project project, out ProjectContext context)
+        // ==================== EnvDTE.Project ==================== //
+
+        public static void AddTemplateFile(this EnvDTE.Project project, string filePath, string cwd, ProjectContext context, string[] templateDirectories, out string outFile, out int position)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            position = -1;
+            string templatePath = outFile = filePath;
+            outFile = ((Glob)outFile).ExpandPath(cwd);
+            if (File.Exists(outFile)) return;
+
+            // Building the template.
+            string fileContent = string.Empty;
+            templatePath = Template.Find(Path.GetFileName(templatePath), templateDirectories);
+            if (!string.IsNullOrEmpty(templatePath))
+            {
+                fileContent = Template.Replace(File.ReadAllText(templatePath), context, outFile, cwd);
+                fileContent = Template.RemoveCaret(fileContent, out position);
+            }
+
+            // Create the template file.
+            AddFile(project, outFile, fileContent);
+        }
+
+        public static EnvDTE.ProjectItem AddFile(this EnvDTE.Project project, string path, string content)
+        {
+            if (File.Exists(path)) return null;
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            EnvDTE.ProjectItems folder = AddFolder(project, Path.GetDirectoryName(path));
+            File.WriteAllText(path, content);
+            return folder?.AddFromFile(path);
+        }
+
+        public static EnvDTE.ProjectItems AddFolder(this EnvDTE.Project project, string fullPath)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")/* virtual folder */
+            {
+                return project.ProjectItems;
+            }
+
+            EnvDTE.ProjectItems folder = project.ProjectItems;
+            string temp = Path.GetDirectoryName(project.FullName);
+            string relativePath = fullPath.Replace(temp, string.Empty).Trim(' ', '/', '\\');
+
+            foreach (string name in relativePath.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (folder == null) throw new IOException($"'{temp}' already exist.");
+
+                temp = Path.Combine(temp, name);
+                if (Directory.Exists(temp))
+                    folder = folder.Item(name)?.ProjectItems;
+                else
+                    folder = folder.AddFolder(name).ProjectItems;
+            }
+
+            return folder;
+        }
+
+        public static EnvDTE.Project GetSolutionFolder(this EnvDTE.DTE dte, string name = default)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (dte == null) throw new ArgumentNullException(nameof(dte));
+            if (string.IsNullOrEmpty(name)) name = ConfigurationPage.SolutionFolderName;
+
+            foreach (EnvDTE.Project item in dte.Solution.Projects)
+                if (string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+
+            return (dte.Solution as EnvDTE80.Solution2)?.AddSolutionFolder(name);
+        }
+
+        public static void InstallNuGetPackage(this EnvDTE.Project project, PackageID package, IVsPackageInstallerServices nuget, IVsPackageInstaller installer, EnvDTE.StatusBar status)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (string.IsNullOrEmpty(package.Name)) return;
+
+            if (!nuget.IsPackageInstalled(project, package.Name))
+            {
+                status.Text = string.Format(VSPackage.statusbarFormat, "Installing {package}...");
+                status.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationSync);
+
+                try
+                {
+                    installer.InstallPackage(null, project, package.Name, package.Version, false);
+                    status.Text = string.Format(VSPackage.statusbarFormat, $"Installed {package}");
+                }
+                catch { status.Text = string.Format(VSPackage.statusbarFormat, $"Unable to install {package}"); }
+                finally { status.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationSync); }
+            }
+        }
+
+        // ==================== EnvDTE.DTE ==================== //
+
+        public static void GetContext(this EnvDTE.DTE dte, out EnvDTE.Project project, out ProjectContext context)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             if (dte == null) throw new ArgumentNullException(nameof(dte));
@@ -63,48 +161,67 @@ namespace Acklann.Scafman
                 );
         }
 
-        public static EnvDTE.Project GetSolutionFolder(DTE2 dte)
+        public static string GetLocation(this ProjectContext context)
         {
-            if (dte == null) throw new ArgumentNullException(nameof(dte));
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            foreach (EnvDTE.Project item in dte.Solution.Projects)
-                if (string.Equals(item.Name, ConfigurationPage.SolutionFolderName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return item;
-                }
-
-            return (dte.Solution as Solution2)?.AddSolutionFolder(ConfigurationPage.SolutionFolderName);
+            if (!string.IsNullOrEmpty(context.ProjectItemPath))
+                return Path.GetDirectoryName(context.ProjectItemPath);
+            else if (!string.IsNullOrEmpty(context.ProjectFilePath))
+                return Path.GetDirectoryName(context.ProjectFilePath);
+            else if (!string.IsNullOrEmpty(context.SolutionFilePath))
+                return Path.GetDirectoryName(context.SolutionFilePath);
+            else
+                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
-        public static string GetLocation(ProjectContext context, Location location)
+        // ==================== Misc ==================== //
+        public static void LaunchDiffTool(this EnvDTE.DTE dte, string file1, string file2)
         {
-            switch (location)
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (string.IsNullOrEmpty(file1)) throw new ArgumentNullException(nameof(file1));
+            if (string.IsNullOrEmpty(file2)) throw new ArgumentNullException(nameof(file2));
+
+            object args = $"\"{file1}\" \"{file2}\"";
+
+            if (File.Exists(ConfigurationPage.DiffExecutable))
             {
-                default:
-                case Location.Current:
-                    if (!string.IsNullOrEmpty(context.ProjectItemPath))
-                        return Path.GetDirectoryName(context.ProjectItemPath);
-                    else if (!string.IsNullOrEmpty(context.ProjectFilePath))
-                        return Path.GetDirectoryName(context.ProjectFilePath);
-                    else if (!string.IsNullOrEmpty(context.SolutionFilePath))
-                        return Path.GetDirectoryName(context.SolutionFilePath);
-                    else
-                        return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                using (var diff = new System.Diagnostics.Process())
+                {
+                    diff.StartInfo = new System.Diagnostics.ProcessStartInfo()
+                    {
+                        FileName = ConfigurationPage.DiffExecutable,
+                        Arguments = (string)args
+                    };
 
-                case Location.Project:
-                    return Path.GetDirectoryName(context.ProjectFilePath) ?? throw new DirectoryNotFoundException("Could not find the project directory.");
-
-                case Location.Solution:
-                    return Path.GetDirectoryName(context.SolutionFilePath) ?? throw new DirectoryNotFoundException("Could not find the solution directory.");
+                    diff.Start();
+                }
+            }
+            else
+            {
+                dte.Commands.Raise("{5D4C0442-C0A2-4BE8-9B4D-AB1C28450942}", 256, ref args, ref args);
+                if (!string.IsNullOrEmpty(ConfigurationPage.DiffExecutable)) dte.StatusBar.Text = $"Counld not find '{ConfigurationPage.DiffExecutable}'.";
             }
         }
 
-        public static IWpfTextView GetTextEditor()
+        public static bool AreEqual(System.ComponentModel.Design.CommandID a, Guid bGuild, int bID)
+        {
+            return a.Guid.Equals(bGuild) && a.ID == bID;
+        }
+
+        public static void MoveActiveDocumentCursorTo(int position)
+        {
+            if (position > 0)
+            {
+                var editor = GetTextEditor();
+                if (editor != null) editor.Caret.MoveTo(new SnapshotPoint(editor.TextBuffer.CurrentSnapshot, position));
+            }
+        }
+
+        private static IWpfTextView GetTextEditor()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var component = (Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel);
+            var component = (Package.GetGlobalService(typeof(SComponentModel)) as IComponentModel);
             if (component != null)
             {
                 IVsEditorAdaptersFactoryService editorAdapter = component.GetService<IVsEditorAdaptersFactoryService>();
@@ -119,24 +236,9 @@ namespace Acklann.Scafman
             return null;
         }
 
-        public static void MoveActiveDocumentCursorTo(int position)
-        {
-            if (position > 0)
-            {
-                var editor = GetTextEditor();
-                if (editor != null) editor.Caret.MoveTo(new SnapshotPoint(editor.TextBuffer.CurrentSnapshot, position));
-            }
-        }
-
-        public static bool CheckIfEndsWithExtension(string path)
-        {
-            if (string.IsNullOrEmpty(path)) return false;
-            else return Regex.IsMatch(path, @"\.[a-z0-9]+$", RegexOptions.IgnoreCase);
-        }
-
         private static string TryGetProperty(EnvDTE.Project project, string name)
         {
-            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            ThreadHelper.ThrowIfNotOnUIThread();
             try
             {
                 return Convert.ToString(project?.Properties?.Item(name)?.Value);
@@ -144,81 +246,5 @@ namespace Acklann.Scafman
             catch { /* could not find the property. */ }
             return null;
         }
-
-        #region P/Invoke
-
-        private const int GWL_STYLE = -16, WS_MAXIMIZEBOX = 0x10000, WS_MINIMIZEBOX = 0x20000;
-
-        internal static void HideMinimizeAndMaximizeButtons(this System.Windows.Window window)
-        {
-            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
-            var currentStyle = GetWindowLong(hwnd, GWL_STYLE);
-
-            SetWindowLong(hwnd, GWL_STYLE, (currentStyle & ~WS_MAXIMIZEBOX & ~WS_MINIMIZEBOX));
-        }
-
-        [DllImport("user32.dll")]
-        extern private static int GetWindowLong(IntPtr hwnd, int index);
-
-        [DllImport("user32.dll")]
-        extern private static int SetWindowLong(IntPtr hwnd, int index, int value);
-
-        #endregion P/Invoke
-
-        /**
-         * List of possible [EnvDTE.Project].Properties
-         * --------------------------------------------
-         *
-         * OutputType = 2
-         * OutputName =
-         * Product = Bar
-         * LocalPath = C:\Users\Ackeem\Projects\Foo\Bar
-         * SupportedTargetFrameworks =
-         * StartupObject =
-         * FullPath = C:\Users\Ackeem\Projects\Foo\Bar\
-         * Description =
-         * DelaySign =
-         * Copyright =
-         * PackageId = Bar
-         * RepositoryType =
-         * AssemblyOriginatorKeyFile =
-         * TargetFSharpCoreVersion =
-         * GeneratePackageOnBuild = False
-         * TargetFrameworkMonikers = .NETStandard,Version=v2.0
-         * RootNamespace = Bar
-         * PackageReleaseNotes =
-         * RepositoryUrl =
-         * OutputFileName = Bar.dll
-         * Version = 1.0.0
-         * PackageLicenseUrl =
-         * FileName = Bar.csproj
-         * DefaultNamespace = Bar
-         * ReferencePath =
-         * TargetFrameworkMoniker = .NETStandard,Version=v2.0
-         * PackageProjectUrl =
-         * PackageRequireLicenseAcceptance = False
-         * AssemblyName = Bar
-         * URL = C:\Users\Ackeem\Projects\Foo\Bar\Bar.csproj
-         * OutputTypeEx = 2
-         * Win32ResourceFile =
-         * ApplicationIcon =
-         * SignAssembly = False
-         * FileVersion = 1.0.0.0
-         * TargetFramework = 131072
-         * CanUseTargetFSharpCoreVersion =
-         * NeutralLanguage =
-         * AutoGenerateBindingRedirects =
-         * RunPostBuildEvent =
-         * Company = Bar
-         * FullProjectFileName = C:\Users\Ackeem\Projects\Foo\Bar\Bar.csproj
-         * PostBuildEvent =
-         * PackageIconUrl =
-         * TargetFrameworks =
-         * ApplicationManifest = DefaultManifest
-         * PreBuildEvent =
-         * AssemblyVersion = 1.0.0.0
-         * Authors = Bar
-         * Name =
-         * **/
     }
 }

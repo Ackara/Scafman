@@ -3,21 +3,21 @@
   <Extern href="stdidcmd.h" />
   <Extern href="vsshlids.h" />
   <Include href="KnownImageIds.vsct" />
-  <!-- Product: Scafman -->
 
   <Commands package="Package">
     <Groups>
-      <Group guid="CmdSet" id="VSToolsMenuGroup" priority="0x0600">
+      <Group guid="CmdSet" id="VSMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
 
-      <Group guid="CmdSet" id="FileCommandGroup" />
+      <Group guid="CmdSet" id="MainCommadGroup" />
       <Group guid="CmdSet" id="MiscCommandGroup" />
+      <Group guid="CmdSet" id="ManagementCommandGroup" />
     </Groups>
 
     <Menus>
       <Menu type="Menu" guid="CmdSet" id="MainMenuId" priority="1">
-        <Parent guid="CmdSet" id="VSToolsMenuGroup" />
+        <Parent guid="CmdSet" id="VSMenuGroup" />
         <Strings>
           <MenuText>Scafman</MenuText>
           <ButtonText>Scafman</ButtonText>
@@ -26,27 +26,13 @@
     </Menus>
 
     <Buttons>
-      <Button guid="CmdSet" id="AddItemFromTemplateCommandId">
+      <Button guid="CmdSet" id="AddNewItemCommandId">
         <Icon guid="ImageCatalogGuid" id="NewItem" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Add New Item(s)</ButtonText>
-        </Strings>
-      </Button>
-
-      <Button guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>AllowVisibilityChangeOnToolBar</CommandFlag>
-        <Strings>
-          <ButtonText>Open Item Group Configuration File</ButtonText>
-        </Strings>
-      </Button>
-
-      <Button guid="CmdSet" id="OpenTemplateDirectoryCommandId">
-        <Strings>
-          <ButtonText>Open Template Directory</ButtonText>
         </Strings>
       </Button>
 
@@ -57,6 +43,32 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Compare Document With Template</ButtonText>
+          <CommandName>CompareActiveDocumentWithTemplate</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="ExportActiveDocumentAsTemplateCommandId">
+        <Icon guid="ImageCatalogGuid" id="Template" />
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Export as Template</ButtonText>
+          <CommandName>ExportActiveDocumentAsTemplate</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId">
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Manage Item Groups</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="CmdSet" id="OpenTemplateDirectoryCommandId">
+        <Strings>
+          <ButtonText>Open Template Directory</ButtonText>
         </Strings>
       </Button>
 
@@ -71,55 +83,66 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="CmdSet" id="FileCommandGroup" priority="1">
+    <CommandPlacement guid="CmdSet" id="MainCommadGroup" priority="1">
       <Parent guid="CmdSet" id="MainMenuId" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="MiscCommandGroup" priority="2">
+    <CommandPlacement guid="CmdSet" id="ManagementCommandGroup" priority="2">
       <Parent guid="CmdSet" id="MainMenuId" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="AddItemFromTemplateCommandId" priority="1">
-      <Parent guid="CmdSet" id="FileCommandGroup" />
+    <CommandPlacement guid="CmdSet" id="MiscCommandGroup" priority="4">
+      <Parent guid="CmdSet" id="MainMenuId" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId" priority="3">
-      <Parent guid="CmdSet" id="FileCommandGroup" />
+    <CommandPlacement guid="CmdSet" id="AddNewItemCommandId" priority="1">
+      <Parent guid="CmdSet" id="MainCommadGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="OpenTemplateDirectoryCommandId" priority="4">
-      <Parent guid="CmdSet" id="FileCommandGroup" />
+    <CommandPlacement guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId" priority="2">
+      <Parent guid="CmdSet" id="MainCommadGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId" priority="5">
-      <Parent guid="CmdSet" id="FileCommandGroup" />
+    <CommandPlacement guid="CmdSet" id="ExportActiveDocumentAsTemplateCommandId" priority="4">
+      <Parent guid="CmdSet" id="MainCommadGroup" />
     </CommandPlacement>
 
-    <CommandPlacement guid="CmdSet" id="GotoConfigurationPageCommandId" priority="1">
+    <CommandPlacement guid="CmdSet" id="OpenTemplateDirectoryCommandId" priority="1">
+      <Parent guid="CmdSet" id="ManagementCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="OpenItemGroupConfigurationFileCommandId" priority="2">
+      <Parent guid="CmdSet" id="ManagementCommandGroup" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="CmdSet" id="GotoConfigurationPageCommandId" priority="10">
       <Parent guid="CmdSet" id="MiscCommandGroup" />
     </CommandPlacement>
   </CommandPlacements>
 
   <VisibilityConstraints>
-    <VisibilityItem guid="CmdSet" id="AddItemFromTemplateCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="AddNewItemCommandId" context="UICONTEXT_SolutionExists" />
+    <VisibilityItem guid="CmdSet" id="ExportActiveDocumentAsTemplateCommandId" context="UICONTEXT_SolutionExists" />
     <VisibilityItem guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId" context="UICONTEXT_SolutionExists" />
   </VisibilityConstraints>
 
   <Symbols>
-    <GuidSymbol name="Package" value="{3c078121-2119-42af-9055-50abb4af5afe}" />
+    <GuidSymbol name="Package" value="{a153dcb8-6275-4a93-988f-2b62da301f36}" />
 
-    <GuidSymbol name="CmdSet" value="{069838a4-a734-4fed-bc02-ef643489a6e7}">
+    <GuidSymbol name="CmdSet" value="{1927fb07-3e0c-4213-8cc1-f87f1df0ab42}">
       <!-- Groups -->
-      <IDSymbol name="VSToolsMenuGroup" value="0x1020" />
-      <IDSymbol name="FileCommandGroup" value="0x103" />
+      <IDSymbol name="VSMenuGroup" value="0x1020" />
+      <IDSymbol name="MainCommadGroup" value="0x103" />
       <IDSymbol name="MiscCommandGroup" value="0x104" />
+      <IDSymbol name="ManagementCommandGroup" value="0x105" />
 
       <!-- Menu -->
       <IDSymbol name="MainMenuId" value="0x201" />
 
       <!-- Commands -->
-      <IDSymbol name="AddItemFromTemplateCommandId" value="0x300" />
+      <IDSymbol name="AddNewItemCommandId" value="0x300" />
       <IDSymbol name="CompareActiveDocumentWithTemplateCommandId" value="0x331" />
+      <IDSymbol name="ExportActiveDocumentAsTemplateCommandId" value="0x0332" />
 
       <IDSymbol name="GotoConfigurationPageCommandId" value="0x303" />
       <IDSymbol name="OpenTemplateDirectoryCommandId" value="0x330" />

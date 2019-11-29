@@ -162,10 +162,11 @@ namespace Acklann.Scafman
 
             string subFolder = GetSubfolder(outputFilePath, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingDirectory);
 
-            foreach (Match match in Regex.Matches(text, @"\$(?<token>[^\$]+)\$", RegexOptions.IgnoreCase))
+            string token;
+            foreach (Match match in Regex.Matches(text, $@"\$(?<{nameof(token)}>[^\$]+)\$", RegexOptions.IgnoreCase))
             {
-                string token = match.Value;
-                switch (match.Groups["token"].Value.ToLowerInvariant())
+                token = match.Value;
+                switch (match.Groups[nameof(token)].Value.ToLowerInvariant())
                 {
                     case "username": text = repl(token, Environment.ExpandEnvironmentVariables("%USERNAME%")); break;
                     case "userdomain": text = repl(token, Environment.ExpandEnvironmentVariables("%USERDOMAIN%")); break;

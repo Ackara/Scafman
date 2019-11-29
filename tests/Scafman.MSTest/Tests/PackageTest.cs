@@ -37,17 +37,17 @@ namespace Acklann.Scafman.Tests
         {
             // Act & Assert
             var text = "";
-            var case1 = Package.Parse(text);
+            var case1 = PackageID.Parse(text);
             case1.Name.ShouldBeNullOrEmpty();
             case1.Version.ShouldBeNullOrEmpty();
 
             text = "GlobN";
-            var case2 = Package.Parse(text);
+            var case2 = PackageID.Parse(text);
             case2.Name.ShouldBe("GlobN");
             case2.Version.ShouldBeNullOrEmpty();
 
             text = "gulp-4.0.2";
-            var case3 = Package.Parse(text);
+            var case3 = PackageID.Parse(text);
             case3.Name.ShouldBe("gulp");
             case3.Version.ShouldBe("4.0.2");
         }

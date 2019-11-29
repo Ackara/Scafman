@@ -1,8 +1,8 @@
 ﻿namespace Acklann.Scafman
 {
-    public readonly struct Package
+    public readonly struct PackageID
     {
-        public Package(string name, string version)
+        public PackageID(string name, string version)
         {
             Name = name;
             Version = version;
@@ -12,12 +12,12 @@
         public readonly string Name, Version;
         public readonly bool IsTool;
 
-        public static Package Parse(string text)
+        public static PackageID Parse(string text)
         {
-            if (string.IsNullOrEmpty(text)) return new Package();
+            if (string.IsNullOrEmpty(text)) return new PackageID();
 
             string[] segments = text.Split('-');
-            return new Package(segments[0], (segments.Length > 1 ? segments[1] : string.Empty));
+            return new PackageID(segments[0], (segments.Length > 1 ? segments[1] : string.Empty));
         }
 
         public override string ToString()
@@ -27,9 +27,9 @@
 
         #region Operators
 
-        public static implicit operator Package(string text) => Parse(text);
+        public static implicit operator PackageID(string text) => Parse(text);
 
-        public static implicit operator string(Package obj) => obj.ToString();
+        public static implicit operator string(PackageID obj) => obj.ToString();
 
         #endregion Operators
     }

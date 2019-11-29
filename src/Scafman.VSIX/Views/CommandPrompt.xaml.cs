@@ -6,14 +6,18 @@ namespace Acklann.Scafman.Views
 {
     public partial class CommandPrompt : Window
     {
-        public CommandPrompt(CommandPromptViewModel context = null)
+        public CommandPrompt() : this(null)
+        {
+        }
+
+        public CommandPrompt(CommandPromptViewModel context)
         {
             InitializeComponent();
             if (context != null) DataContext = _model = context;
-            
-            Title = Symbol.Name;
+
+            Title = $"Add New Item | {Metadata.Name}";
             SizeToContent = SizeToContent.Height;
-            WindowStartupLocation = (_model.Top <= CommandPromptViewModel.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
+            WindowStartupLocation = (_model.Top <= PromptBase.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }
 
         private readonly CommandPromptViewModel _model;
@@ -35,11 +39,11 @@ namespace Acklann.Scafman.Views
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey?.IsDown ?? false) _model.SetIntellisense(true);
+                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense();
                     break;
 
                 case Key.OemSemicolon: // ')' key
-                    _model.SetIntellisense(false);
+                    _model.DisableIntellisense();
                     break;
 
                 case Key.Up:
@@ -65,11 +69,11 @@ namespace Acklann.Scafman.Views
                     break;
 
                 case Key.D0:
-                    if (_shiftKey?.IsDown ?? false) _model.SetIntellisense(false);
+                    if (_shiftKey?.IsDown ?? false) _model.DisableIntellisense();
                     break;
 
                 case Key.OemComma:
-                    _model.SetIntellisense(false);
+                    _model.DisableIntellisense();
                     break;
             }
         }
@@ -87,7 +91,7 @@ namespace Acklann.Scafman.Views
 
         private void OnSourceInitialized(object sender, System.EventArgs e)
         {
-            this.HideMinimizeAndMaximizeButtons();
+            //this.HideMinimizeAndMaximizeButtons();
         }
     }
 }

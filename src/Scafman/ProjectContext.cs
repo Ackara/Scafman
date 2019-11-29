@@ -30,6 +30,11 @@ namespace Acklann.Scafman
 
         public readonly string Version;
 
+        public string ProjectDirectory
+        {
+            get => System.IO.Path.GetDirectoryName(ProjectFilePath);
+        }
+
         public override string ToString()
         {
             string escape(string value) => (value == null ? "null" : $"''{value}''");

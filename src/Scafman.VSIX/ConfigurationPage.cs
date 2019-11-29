@@ -7,91 +7,84 @@ using System.Linq;
 
 namespace Acklann.Scafman
 {
-    public class ConfigurationPage
+    public class ConfigurationPage : DialogPage
     {
-        internal static string UserItemGroupFile, SolutionFolderName, DiffExecutable;
+        public ConfigurationPage()
+        {
+            var knownDiffTools = new string[]
+            {
+                    @"C:\Program Files\Beyond Compare 4\BCompare.exe"
+            };
+
+            foreach (string executablePath in knownDiffTools)
+                if (File.Exists(executablePath))
+                {
+                    DiffTool = executablePath;
+                    break;
+                }
+        }
+
+        internal const string Category = "General";
+        internal static string UserItemGroupConfigurationFilePath, SolutionFolderName, DiffExecutable;
         internal static string[] UserTemplateDirectories;
+
+        private static readonly string[] _builtInTemplateFolders = new string[]
+        {
+            Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates")
+        };
+
+        [Category(Category)]
+        [DisplayName("Template Directory")]
+        [Description("The absolute path of your template directory.")]
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] TemplateDirectories
+        {
+            get => UserTemplateDirectories;
+            set { UserTemplateDirectories = value; }
+        }
+
+        [Category(Category)]
+        [DisplayName("Item Groups")]
+        [Description("The absolute path of your item-group configuration file.")]
+        public string ItemGroupConfigurationFile
+        {
+            get => UserItemGroupConfigurationFilePath;
+            set { UserItemGroupConfigurationFilePath = Environment.ExpandEnvironmentVariables(value); }
+        }
+
+        [Category(Category)]
+        [DisplayName("Solution Folder Name")]
+        [Description("The name of folder name to place files in when at the solution level.")]
+        public string FolderName
+        {
+            get => (SolutionFolderName ?? "Solution Items");
+            set { SolutionFolderName = value; }
+        }
+
+        [Category(Category)]
+        [DisplayName("Preferred diff tool")]
+        [Description("The absolute path the preferred diff tool.")]
+        public string DiffTool
+        {
+            get => DiffExecutable;
+            set { DiffExecutable = value; }
+        }
 
         internal static string UserTemplateDirectory
         {
             get => (UserTemplateDirectories?.Length > 0 ? UserTemplateDirectories[0] : null);
         }
 
-        public class General : DialogPage
+        internal static string[] GetAllTemplateDirectories()
         {
-            public General()
-            {
-                var knownDiffToolsInstallationPaths = new string[]
-                {
-                    @"C:\Program Files\Beyond Compare 4\BCompare.exe"
-                };
-
-                foreach (string executablePath in knownDiffToolsInstallationPaths)
-                    if (File.Exists(executablePath))
-                    {
-                        DiffTool = executablePath;
-                        break;
-                    }
-            }
-
-            private readonly string[] _builtInTemplateFolders = new string[]
-            {
-                Path.Combine(Path.GetDirectoryName(typeof(VSPackage).Assembly.Location), "Templates")
-            };
-
-            [Category(nameof(General))]
-            [DisplayName("Template Directory")]
-            [Description("The absolute path of your template directory.")]
-            [TypeConverter(typeof(StringArrayConverter))]
-            public string[] TemplateDirectories { get; set; }
-
-            [Category(nameof(General))]
-            [DisplayName("Item Groups")]
-            [Description("The absolute path of your item-group configuration file.")]
-            public string ItemGroupsConfigurationFilePath { get; set; }
-
-            [Category(nameof(General))]
-            [DisplayName("Default Solution Explorer Folder")]
-            [Description("The name of default solution explorer folder name")]
-            public string DefaultSolutionExplorerFolderName { get; set; } = "Solution Items";
-
-            [Category(nameof(General))]
-            [DisplayName("Create Template If Not Exists")]
-            [Description("Determines whether to create the missing template when the compare command is invoked.")]
-            public bool CreateTemplateIfMissing { get; set; } = true;
-
-            [Category(nameof(General))]
-            [DisplayName("Preferred diff tool")]
-            [Description("The absolute path the preferred diff tool.")]
-            public string DiffTool { get; set; }
-
-            public override void LoadSettingsFromStorage()
-            {
-                System.Diagnostics.Debug.WriteLine($"{nameof(ConfigurationPage)}::{nameof(LoadSettingsFromStorage)}");
-                base.LoadSettingsFromStorage();
-
-                Update();
-            }
-
-            public override void SaveSettingsToStorage()
-            {
-                System.Diagnostics.Debug.WriteLine($"{nameof(ConfigurationPage)}::{nameof(SaveSettingsToStorage)}");
-                base.SaveSettingsToStorage();
-                Update();
-            }
-
-            private void Update()
-            {
-                DiffExecutable = DiffTool;
-                SolutionFolderName = DefaultSolutionExplorerFolderName;
-                UserItemGroupFile = Environment.ExpandEnvironmentVariables(ItemGroupsConfigurationFilePath ?? string.Empty);
-
-                if (TemplateDirectories?.Length > 0)
-                    UserTemplateDirectories = TemplateDirectories.Select((x) => Environment.ExpandEnvironmentVariables(x)).Concat(_builtInTemplateFolders).ToArray();
-                else
-                    UserTemplateDirectories = _builtInTemplateFolders;
-            }
+            if (UserTemplateDirectories?.Length > 0)
+                return UserTemplateDirectories.Select((x) => Environment.ExpandEnvironmentVariables(x)).Concat(_builtInTemplateFolders).ToArray();
+            else
+                return _builtInTemplateFolders;
         }
+
+        #region Backing Members
+
         private class StringArrayConverter : TypeConverter
         {
             // LINK: https://stackoverflow.com/questions/24291249/dialogpage-string-array-not-persisted
@@ -119,5 +112,7 @@ namespace Acklann.Scafman
                 return ((destinationType == typeof(string) && (value is string[] array)) ? string.Join(char.ToString(SEPARATOR), array) : base.ConvertTo(context, culture, value, destinationType));
             }
         }
+
+        #endregion Backing Members
     }
 }

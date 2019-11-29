@@ -1,28 +1,25 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace Acklann.Scafman.Models
 {
-    [XmlRoot(nameof(Scafman))]
-    public class CommandPromptViewModel : INotifyPropertyChanged
+    [XmlRoot]
+    public sealed class CommandPromptViewModel : PromptBase, INotifyPropertyChanged
     {
-        public CommandPromptViewModel() : this(GetDefaultFilePath())
+        public CommandPromptViewModel() : this(GetDefaultFilePath(FILENAME))
         {
         }
 
-        public CommandPromptViewModel(string stateFilePath)
+        public CommandPromptViewModel(string stateFilePath) : base(stateFilePath)
         {
-            _stateFilePath = stateFilePath ?? throw new ArgumentNullException(nameof(stateFilePath));
         }
 
         public const int LIMIT = 5;
-        public const int MINIMUM_WIDTH = 300;
         public const int DEFAULT_CAPACITY = 16;
-        public const int DEFAULT_POSITION = 100;
 
         [XmlIgnore]
         public string UserInput
@@ -64,50 +61,6 @@ namespace Acklann.Scafman.Models
             get => (Path.GetFileName(_location.TrimEnd('\\', '/')) + '\\');
         }
 
-        [XmlAttribute]
-        public int Top
-        {
-            get { return _top; }
-            set
-            {
-                _top = value;
-                RaisePropertyChangedEvent(nameof(Top));
-            }
-        }
-
-        [XmlAttribute]
-        public int Left
-        {
-            get { return _left; }
-            set
-            {
-                _left = value;
-                RaisePropertyChangedEvent(nameof(Left));
-            }
-        }
-
-        [XmlAttribute]
-        public int Width
-        {
-            get { return _width; }
-            set
-            {
-                _width = (value < MINIMUM_WIDTH ? MINIMUM_WIDTH : value);
-                RaisePropertyChangedEvent(nameof(Width));
-            }
-        }
-
-        [XmlAttribute]
-        public bool UsingDarkTheme
-        {
-            get { return _usingDarkTheme; }
-            set
-            {
-                _usingDarkTheme = value;
-                RaisePropertyChangedEvent(nameof(UsingDarkTheme));
-            }
-        }
-
         [XmlIgnore]
         public int SelectedIndex
         {
@@ -139,18 +92,16 @@ namespace Acklann.Scafman.Models
             get => _options;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public static CommandPromptViewModel Restore()
+        public static CommandPromptViewModel Restore(string stateFilePath = default)
         {
-            string stateFilePath = GetDefaultFilePath();
+            if (stateFilePath == default) stateFilePath = GetDefaultFilePath(FILENAME);
             if (!File.Exists(stateFilePath)) return new CommandPromptViewModel(stateFilePath);
 
-            using (Stream file = File.OpenRead(stateFilePath))
+            using (Stream file = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var serializer = new XmlSerializer(typeof(CommandPromptViewModel));
                 var model = (CommandPromptViewModel)serializer.Deserialize(file);
-                model._stateFilePath = stateFilePath;
+                model.StateFilePath = stateFilePath;
                 return model;
             }
         }
@@ -172,7 +123,7 @@ namespace Acklann.Scafman.Models
         public void CompleteCommand(string input)
         {
             if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
-            else UserInput = (Helper.CheckIfEndsWithExtension(input) ? input : (input + Template.GuessExtension(_project, _location)));
+            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessExtension(_project, _location)));
 
             Options.Clear();
         }
@@ -195,28 +146,16 @@ namespace Acklann.Scafman.Models
             _intellisenseActivated = false;
         }
 
-        public void Save()
+        public void ActivateIntellisense() => SetIntellisense(true);
+
+        public void DisableIntellisense() => SetIntellisense(false);
+
+        private void SetIntellisense(bool on)
         {
-            string folder = Path.GetDirectoryName(_stateFilePath);
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-            using (Stream file = new FileStream(_stateFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
-            {
-                var serializer = new XmlSerializer(typeof(CommandPromptViewModel));
-                serializer.Serialize(file, this);
-            }
-        }
-
-        public Task SaveAsync() => Task.Run(() => { try { Save(); } catch (UnauthorizedAccessException) { } });
-
-        public void SetIntellisense(bool on)
-        {
-#pragma warning disable VSTHRD110 // Observe result of async calls
             if (on) Task.Run(() =>
-#pragma warning restore VSTHRD110 // Observe result of async calls
             {
-                if (File.Exists(ConfigurationPage.UserItemGroupFile))
-                    try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupFile); }
+                if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath))
+                    try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupConfigurationFilePath); }
                     catch (System.Runtime.Serialization.SerializationException) { }
                     catch (IOException) { }
             });
@@ -237,21 +176,21 @@ namespace Acklann.Scafman.Models
             while (items.Length < _options.Count) Options.RemoveAt(_options.Count - 1);
         }
 
-        private void RaisePropertyChangedEvent(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         #region Backing Variables
 
+        private const string FILENAME = "command-prompt-state.xml";
         private readonly ObservableCollection<SearchItem> _options = new ObservableCollection<SearchItem>();
 
         private volatile ItemGroup[] _groups;
-        private bool _usingDarkTheme, _intellisenseActivated;
-        private int _top = DEFAULT_POSITION, _left = DEFAULT_POSITION, _width = MINIMUM_WIDTH, _selectedIndex;
-        private string _userInput = string.Empty, _location = string.Empty, _stateFilePath, _project = string.Empty;
+        private bool _intellisenseActivated;
+        private int _selectedIndex;
+        private string _userInput = string.Empty, _location = string.Empty, _project = string.Empty;
 
-        private static string GetDefaultFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(Scafman), "state.xml");
+        private static bool CheckIfEndsWithExtension(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            else return Regex.IsMatch(path, @"\.[a-z0-9]+$", RegexOptions.IgnoreCase);
+        }
 
         #endregion Backing Variables
     }
