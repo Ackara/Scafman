@@ -99,16 +99,16 @@ namespace Acklann.Scafman
 
             if (!nuget.IsPackageInstalled(project, package.Name))
             {
-                status.Text = string.Format(VSPackage.statusbarFormat, "Installing {package}...");
-                status.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationSync);
+                status.Text = LocalizedString.GetStatus($"Installing {package}...");
+                status.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral);
 
                 try
                 {
                     installer.InstallPackage(null, project, package.Name, package.Version, false);
-                    status.Text = string.Format(VSPackage.statusbarFormat, $"Installed {package}");
+                    status.Text = LocalizedString.GetStatus($"Installed {package}");
                 }
-                catch { status.Text = string.Format(VSPackage.statusbarFormat, $"Unable to install {package}"); }
-                finally { status.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationSync); }
+                catch { status.Text = LocalizedString.GetStatus($"Unable to install {package}"); }
+                finally { status.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral); }
             }
         }
 
@@ -246,5 +246,25 @@ namespace Acklann.Scafman
             catch { /* could not find the property. */ }
             return null;
         }
+
+        #region P/Invoke
+
+        private const int GWL_STYLE = -16, WS_MAXIMIZEBOX = 0x10000, WS_MINIMIZEBOX = 0x20000;
+
+        internal static void HideMinimizeAndMaximizeButtons(this System.Windows.Window window)
+        {
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+            var currentStyle = GetWindowLong(hwnd, GWL_STYLE);
+
+            SetWindowLong(hwnd, GWL_STYLE, (currentStyle & ~WS_MAXIMIZEBOX & ~WS_MINIMIZEBOX));
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        extern private static int GetWindowLong(IntPtr hwnd, int index);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        extern private static int SetWindowLong(IntPtr hwnd, int index, int value);
+
+        #endregion P/Invoke
     }
 }

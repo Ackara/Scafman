@@ -23,11 +23,6 @@ namespace Acklann.Scafman.Views
         private readonly CommandPromptViewModel _model;
         private KeyEventArgs _shiftKey;
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            Inputbox.Focus();
-        }
-
         private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
             //System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | pressed: {e.Key}, text: {Inputbox.Text}");
@@ -89,9 +84,15 @@ namespace Acklann.Scafman.Views
             }
         }
 
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            Inputbox.Focus();
+        }
+
         private void OnSourceInitialized(object sender, System.EventArgs e)
         {
-            //this.HideMinimizeAndMaximizeButtons();
+            Helper.HideMinimizeAndMaximizeButtons(this);
+            Inputbox.Focus();
         }
     }
 }

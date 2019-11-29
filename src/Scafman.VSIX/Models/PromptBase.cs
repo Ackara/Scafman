@@ -69,7 +69,7 @@ namespace Acklann.Scafman.Models
 
         public Task SaveAsync() => Task.Run(() => { try { Save(); } catch (UnauthorizedAccessException) { } });
 
-        internal static string GetDefaultFilePath(string name)
+        internal static string GetDefaultFilePath(string name = "user-prompt-state.xml")
         {
 #if DEBUG
             return Path.Combine(Path.GetTempPath(), Metadata.Name, name);

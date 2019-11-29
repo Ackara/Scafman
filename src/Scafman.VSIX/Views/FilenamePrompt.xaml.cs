@@ -37,7 +37,10 @@ namespace Acklann.Scafman.Views
 
         private void OnWindowSourceInitialized(object sender, System.EventArgs e)
         {
+            Helper.HideMinimizeAndMaximizeButtons(this);
+            InputBox.Focus();
             InputBox.SelectAll();
+            System.Diagnostics.Debug.WriteLine(nameof(OnWindowSourceInitialized));
         }
 
         #region Backing Members

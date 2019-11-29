@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:Acklann.Scafman.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         WindowStartupLocation="Manual"
-        WindowStyle="ToolWindow"
+        WindowStyle="SingleBorderWindow"
         ShowInTaskbar="False"
         SizeToContent="WidthAndHeight"
         Top="{Binding Top, Mode=TwoWay}"
@@ -37,100 +37,14 @@
     </d:Window.DataContext>
 
     <Window.Resources>
-        <ResourceDictionary x:Name="Stylesheet">
-            <!--
-            vs-dark-color-bg: #FF252526
-            vs-dark-color-text-panel: #FF3F3F46
-            -->
-
-            <SolidColorBrush x:Key="TextColor" Color="#FFC7C7C7" />
-            <SolidColorBrush x:Key="BackgroundColor1" Color="#FF2D2D30" />
-            <SolidColorBrush x:Key="BackgroundColor2" Color="#FF3F3F46" />
-
-            <Thickness x:Key="t100">6,3</Thickness>
-
-            <Style x:Key="SearchItem"
-                   TargetType="StackPanel">
-                <Setter Property="Width"
-                        Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},Path=ActualWidth}" />
-
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSelected}"
-                                 Value="True">
-                        <Setter Property="Background"
-                                Value="#BF007ACC" />
-
-                        <Setter Property="Orientation"
-                                Value="Vertical" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
-            <Style TargetType="TextBlock">
-                <Setter Property="VerticalAlignment"
-                        Value="Center" />
-
-                <Setter Property="HorizontalAlignment"
-                        Value="Stretch" />
-
-                <Setter Property="Padding"
-                        Value="{StaticResource t100}" />
-            </Style>
-
-            <Style x:Key="IntellisenceTitle"
-                   TargetType="TextBlock">
-                <Setter Property="Padding"
-                        Value="{StaticResource t100}" />
-
-                <Setter Property="FontSize"
-                        Value="14" />
-
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSelected}"
-                                 Value="True">
-                        <Setter Property="Foreground"
-                                Value="White" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
-            <Style x:Key="IntellisenceTooltip"
-                   TargetType="TextBlock">
-                <Setter Property="Padding"
-                        Value="{StaticResource t100}" />
-
-                <Setter Property="Foreground"
-                        Value="Gray" />
-
-                <Setter Property="TextWrapping"
-                        Value="Wrap" />
-
-                <Setter Property="FontSize"
-                        Value="10" />
-
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSelected}"
-                                 Value="True">
-                        <Setter Property="Foreground"
-                                Value="LightGray" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
-            <Style TargetType="ListViewItem">
-                <Setter Property="BorderThickness"
-                        Value="0" />
-
-                <Setter Property="Margin"
-                        Value="0" />
-
-                <Setter Property="Padding"
-                        Value="0" />
-            </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Style.xaml" />
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="0,3">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -144,6 +58,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="{Binding CurrentFolder, Mode=OneWay}"
+                   Padding="0,0,6,0"
                    FontWeight="SemiBold"
                    Grid.Column="0"
                    Grid.Row="1" />
@@ -152,17 +67,10 @@
                  Text="{Binding UserInput, Mode=TwoWay}"
                  PreviewKeyUp="OnPreviewKeyUp"
                  PreviewKeyDown="PreviewKeyDown"
-                 HorizontalAlignment="Stretch"
-                 VerticalAlignment="Center"
-                 Background="Transparent"
-                 FontFamily="Consolas"
-                 Margin="0, 0, 3, 0"
-                 Padding="3, 6"
                  Grid.Column="1"
                  Grid.Row="1" />
 
-        <TextBlock TextTrimming="CharacterEllipsis"
-                   Margin="0, 6, 0, 0"
+        <TextBlock Margin="{StaticResource VerticalGutter}"
                    Grid.ColumnSpan="2"
                    Grid.Row="2">
             <Run Text="Location: " />
@@ -171,15 +79,16 @@
 
         <ListView ItemsSource="{Binding Options}"
                   SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                  Background="WhiteSmoke"
                   ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                   KeyboardNavigation.TabNavigation="None"
-                  Background="Transparent"
                   BorderThickness="0"
                   Grid.Row="3"
                   Grid.ColumnSpan="2">
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:SearchItem}">
-                    <StackPanel Style="{StaticResource SearchItem}">
+                    <StackPanel Style="{StaticResource ListItemPanel}"
+                                Orientation="Vertical">
                         <TextBlock Text="{Binding Title}"
                                    Style="{StaticResource IntellisenceTitle}" />
 

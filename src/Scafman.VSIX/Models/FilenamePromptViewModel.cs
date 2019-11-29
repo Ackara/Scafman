@@ -6,10 +6,10 @@ using System.Xml.Serialization;
 
 namespace Acklann.Scafman.Models
 {
-    [XmlRoot]
+    [XmlRoot(nameof(PromptBase))]
     public sealed class FilenamePromptViewModel : PromptBase, INotifyPropertyChanged
     {
-        public FilenamePromptViewModel() : this(GetDefaultFilePath(FILENAME))
+        public FilenamePromptViewModel() : this(GetDefaultFilePath())
         {
         }
 
@@ -81,7 +81,7 @@ namespace Acklann.Scafman.Models
 
         public static FilenamePromptViewModel Restore(string stateFilePath = default)
         {
-            if (stateFilePath == default) stateFilePath = GetDefaultFilePath(FILENAME);
+            if (stateFilePath == default) stateFilePath = GetDefaultFilePath();
             if (!File.Exists(stateFilePath)) return new FilenamePromptViewModel(stateFilePath);
 
             using (var stream = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -121,8 +121,6 @@ namespace Acklann.Scafman.Models
         }
 
         #region Backing Members
-
-        private const string FILENAME = "file-prompt-state.xml";
 
         private string _userInput, _projectDirectory, _message;
         private bool _isValid;

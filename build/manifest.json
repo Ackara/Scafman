@@ -1,7 +1,8 @@
 ﻿{
   "name": "Scafman",
-  "description": "A template manager.",
-  "version": {
+  "description": "A file-based template manager.",
+  "version":
+  {
     "major": 0,
     "minor": 0,
     "patch": 23
@@ -15,7 +16,8 @@
   "releaseNotes": "https://github.com/{company}/{name}/blob/master/changelog.md",
   "tags": "template manager add file package",
   "icon": "icon.png",
-  "branchVersionMap": {
+  "branchVersionMap":
+  {
     "master": "C",
     "default": "x.y.z-\\beta"
   }

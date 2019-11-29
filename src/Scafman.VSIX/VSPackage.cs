@@ -19,7 +19,6 @@ namespace Acklann.Scafman
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", Metadata.Version, IconResourceID = 500)]
     [ProvideOptionPage(typeof(ConfigurationPage), Metadata.Name, ConfigurationPage.Category, 0, 0, true)]
-    //[ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class VSPackage : AsyncPackage
     {
@@ -29,7 +28,7 @@ namespace Acklann.Scafman
             _commandPrompt = await Models.CommandPromptViewModel.RestoreAsync();
 
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _dte = (await GetServiceAsync(typeof(EnvDTE.DTE)) as EnvDTE.DTE);
+            vs = (await GetServiceAsync(typeof(EnvDTE.DTE)) as EnvDTE.DTE);
             GetDialogPage(typeof(ConfigurationPage));
 
             var commandService = (await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService);
@@ -45,14 +44,15 @@ namespace Acklann.Scafman
             }
         }
 
-        private string GetCommandFromUser(string cwd)
+        private string GetCommandFromUser(string cwd, string title = "Enter a command")
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _commandPrompt.Reset();
             _commandPrompt.Location = cwd;
 
-            var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
+            var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
+            dialog.Title = LocalizedString.GetWindowTitle(title);
             bool? outcome = dialog.ShowDialog();
             _commandPrompt.SaveAsync();
 
@@ -60,13 +60,13 @@ namespace Acklann.Scafman
             else return (_commandPrompt.UserInput ?? string.Empty).Trim();
         }
 
-        private string GetFilenameFromUser(string cwd, string defaultName)
+        private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter a file name")
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _filePrompt.Initialize(cwd, defaultName);
-            var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(_dte.MainWindow.HWnd)).RootVisual };
-            dialog.Title = string.Format(LocalizedString.WindowTitleFormat, "Filename");
+            var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
+            dialog.Title = LocalizedString.GetWindowTitle(title);
             bool? outcome = dialog.ShowDialog();
             _filePrompt.SaveAsync();
 
@@ -78,7 +78,7 @@ namespace Acklann.Scafman
         private void OnAddNewItemCommandInvoked(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            _dte.GetContext(out EnvDTE.Project project, out ProjectContext context);
+            vs.GetContext(out EnvDTE.Project project, out ProjectContext context);
 
             string command = null;
             _commandPrompt.Project = context.ProjectFilePath;
@@ -95,17 +95,17 @@ namespace Acklann.Scafman
                 switch (item.Kind)
                 {
                     case Switch.AddFolder:
-                        (project ?? _dte.GetSolutionFolder()).AddFolder(item.Input.ExpandPath(cwd));
+                        (project ?? vs.GetSolutionFolder()).AddFolder(item.Input.ExpandPath(cwd));
                         break;
 
                     case Switch.AddFile:
-                        (project ?? _dte.GetSolutionFolder()).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.GetAllTemplateDirectories(), out string newFilePath, out int startingPosition);
+                        (project ?? vs.GetSolutionFolder()).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.GetAllTemplateDirectories(), out string newFilePath, out int startingPosition);
                         if (File.Exists(newFilePath))
                         {
                             VsShellUtilities.OpenDocument(this, newFilePath);
                             Helper.MoveActiveDocumentCursorTo(startingPosition);
-                            try { _dte.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument"); } catch (COMException) { }
-                            _dte.ActiveDocument?.Activate();
+                            try { vs.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument"); } catch (COMException) { }
+                            vs.ActiveDocument?.Activate();
                         }
                         break;
 
@@ -115,7 +115,7 @@ namespace Acklann.Scafman
                         if (nuget == null) nuget = componentModel.GetService<IVsPackageInstallerServices>();
                         if (installer == null) installer = componentModel.GetService<IVsPackageInstaller>();
 
-                        project.InstallNuGetPackage(item.Input, nuget, installer, _dte.StatusBar);
+                        project.InstallNuGetPackage(item.Input, nuget, installer, vs.StatusBar);
                         break;
 
                     case Switch.NPMPackage:
@@ -128,8 +128,9 @@ namespace Acklann.Scafman
         private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            const string title = "Compare Active Document with Template";
 
-            string documentPath = _dte.ActiveDocument?.FullName;
+            string documentPath = vs.ActiveDocument?.FullName;
             if (string.IsNullOrEmpty(documentPath)) return;
 
             string templateFile = Template.Find(documentPath, ConfigurationPage.UserTemplateDirectories);
@@ -138,36 +139,39 @@ namespace Acklann.Scafman
             {
                 DialogResult answer = MessageBox.Show(
                     $"I could not find a matching template. Do you want to create one?",
-                    string.Format(windowTitleFormat, "Compare Active Document with Template"),
+                    LocalizedString.GetWindowTitle(title),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
 
                 if (answer == DialogResult.Yes)
                 {
-                    templateFile = Path.Combine(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
+                    templateFile = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath), title);
+                    if (string.IsNullOrEmpty(templateFile)) return;
 
-                    if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory)) Directory.CreateDirectory(ConfigurationPage.UserTemplateDirectory);
+                    string folder = Path.GetDirectoryName(templateFile);
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                     File.Create(templateFile).Dispose();
                 }
             }
 
             if (!string.IsNullOrEmpty(templateFile))
             {
-                _dte.LaunchDiffTool(documentPath, templateFile);
+                vs.LaunchDiffTool(documentPath, templateFile);
             }
         }
 
         private void OnExportActiveDocumentAsTemplateCommandInvoked(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            const string title = "Set Template Directory";
 
-            string documentPath = _dte.ActiveDocument?.FullName;
+            string documentPath = vs.ActiveDocument?.FullName;
             if (string.IsNullOrEmpty(documentPath)) return;
 
             if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory))
             {
                 DialogResult answer = MessageBox.Show(
                     $"You have not specified a template directory yet. Do you want to?",
-                    string.Format(windowTitleFormat, "Set Template Directory"),
+                    LocalizedString.GetWindowTitle(title),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
 
                 if (answer == DialogResult.Yes)
@@ -178,20 +182,19 @@ namespace Acklann.Scafman
                 return;
             }
 
-            string outPath = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath));
-            if (string.IsNullOrEmpty(outPath)) return;
+            string newTemplateFilePath = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath), title);
+            if (string.IsNullOrEmpty(newTemplateFilePath)) return;
 
-            string folder = Path.GetDirectoryName(outPath);
+            string folder = Path.GetDirectoryName(newTemplateFilePath);
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-            using (var inStream = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var outStream = new FileStream(outPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+            using (var source = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var destination = new FileStream(newTemplateFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
-                inStream.CopyTo(outStream);
-                outStream.Flush();
+                source.CopyTo(destination);
+                destination.Flush();
             }
 
-            VsShellUtilities.OpenDocument(this, outPath);
+            VsShellUtilities.OpenDocument(this, newTemplateFilePath);
         }
 
         private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
@@ -215,7 +218,7 @@ namespace Acklann.Scafman
 
             if (sender is OleMenuCommand command)
             {
-                string documentPath = _dte.ActiveDocument?.FullName;
+                string documentPath = vs.ActiveDocument?.FullName;
                 command.Enabled = documentPath != null;
 
                 if (Helper.AreEqual(command.CommandID, Metadata.CmdSet.Guid, Metadata.CmdSet.ExportActiveDocumentAsTemplateCommandId))
@@ -227,11 +230,7 @@ namespace Acklann.Scafman
 
         #region Backing Members
 
-        internal const string
-            statusbarFormat = (Metadata.Name + ": {0}"),
-            windowTitleFormat = ("{0} | " + Metadata.Name);
-
-        private EnvDTE.DTE _dte;
+        internal EnvDTE.DTE vs;
         private Models.FilenamePromptViewModel _filePrompt;
         private Models.CommandPromptViewModel _commandPrompt;
 

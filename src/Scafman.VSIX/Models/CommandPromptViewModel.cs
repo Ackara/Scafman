@@ -7,10 +7,10 @@ using System.Xml.Serialization;
 
 namespace Acklann.Scafman.Models
 {
-    [XmlRoot]
+    [XmlRoot(nameof(PromptBase))]
     public sealed class CommandPromptViewModel : PromptBase, INotifyPropertyChanged
     {
-        public CommandPromptViewModel() : this(GetDefaultFilePath(FILENAME))
+        public CommandPromptViewModel() : this(GetDefaultFilePath())
         {
         }
 
@@ -94,7 +94,7 @@ namespace Acklann.Scafman.Models
 
         public static CommandPromptViewModel Restore(string stateFilePath = default)
         {
-            if (stateFilePath == default) stateFilePath = GetDefaultFilePath(FILENAME);
+            if (stateFilePath == default) stateFilePath = GetDefaultFilePath();
             if (!File.Exists(stateFilePath)) return new CommandPromptViewModel(stateFilePath);
 
             using (Stream file = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -178,7 +178,6 @@ namespace Acklann.Scafman.Models
 
         #region Backing Variables
 
-        private const string FILENAME = "command-prompt-state.xml";
         private readonly ObservableCollection<SearchItem> _options = new ObservableCollection<SearchItem>();
 
         private volatile ItemGroup[] _groups;

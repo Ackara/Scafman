@@ -1,5 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:Name="Stylesheet">
+
+    <Thickness x:Key="VerticalGutter">0,6,0,0</Thickness>
+    <SolidColorBrush x:Key="AccentColor">#BF007ACC</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundColor1">#FF1E1E1E</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundColor2">#FF2D2D30</SolidColorBrush>
+    <SolidColorBrush x:Key="TextColor">#FFF1F1F1</SolidColorBrush>
 
     <Style TargetType="Grid">
         <Setter Property="Margin" Value="6,12" />
@@ -7,17 +14,83 @@
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="Transparent" />
-        
-        <Setter Property="Margin" Value="6,0" />
+
         <Setter Property="Padding" Value="3" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
-
         <Setter Property="FontFamily" Value="Consolas" />
     </Style>
 
     <Style TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Consolas" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="IntellisenceTitle"
+                   TargetType="TextBlock">
+
+        <Setter Property="FontSize"
+                        Value="14" />
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected}"
+                                 Value="True">
+                <Setter Property="Foreground"
+                                Value="White" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="IntellisenceTooltip"
+                   TargetType="TextBlock">
+
+        <Setter Property="Opacity"
+                Value="0.75" />
+
+        <Setter Property="TextWrapping"
+                        Value="Wrap" />
+
+        <Setter Property="FontSize"
+                        Value="10" />
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected}"
+                                 Value="True">
+                <Setter Property="Foreground"
+                                Value="WhiteSmoke" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ListItemPanel"
+           TargetType="StackPanel">
+        <Setter Property="Width"
+                Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},Path=ActualWidth}" />
+
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style TargetType="ListViewItem">
+        <Setter Property="BorderBrush"
+                Value="Gray" />
+
+        <Setter Property="BorderThickness"
+                        Value="0,1,0,0" />
+
+        <Setter Property="Padding"
+                        Value="6,3" />
+
+        <Setter Property="Margin"
+                Value="0" />
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected}"
+                         Value="True">
+
+                <Setter Property="Background"
+                        Value="{StaticResource AccentColor}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

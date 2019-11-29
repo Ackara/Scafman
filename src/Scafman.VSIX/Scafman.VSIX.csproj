@@ -55,6 +55,7 @@
     <Compile Include="ConfigurationPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="LocalizedString.cs" />
     <Compile Include="Models\CommandPromptViewModel.cs" />
@@ -66,6 +67,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Metadata.tt</DependentUpon>
     </Compile>
+    <Content Include="..\..\art\export\logo.ico">
+      <Link>Resources\logo.ico</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\art\export\logo.png">
+      <Link>Resources\logo.png</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Templates\~.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -127,8 +137,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\Command1.png" />
-    <Content Include="Resources\Command1Package.ico" />
     <Content Include="Metadata.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Metadata.cs</LastGenOutput>
