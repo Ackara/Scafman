@@ -14,7 +14,7 @@ namespace Acklann.Scafman.Models
             StateFilePath = filePath;
         }
 
-        public const int MINIMUM_WIDTH = 300;
+        public const int MINIMUM_WIDTH = 500;
         public const int DEFAULT_POSITION = 100;
 
         protected string StateFilePath;
@@ -76,6 +76,26 @@ namespace Acklann.Scafman.Models
 #else
             return Path.Combine(Path.GetDirectoryName(typeof(PromptBase).Assembly.Location), Metadata.Name, name);
 #endif
+        }
+
+        internal static T Restore<T>(string stateFilePath = default) where T : PromptBase
+        {
+            if (stateFilePath == default) stateFilePath = GetDefaultFilePath();
+            Stream stream = null;
+
+            try
+            {
+                stream = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                var serializer = new XmlSerializer(typeof(T));
+                var model = (T)serializer.Deserialize(stream);
+                model.StateFilePath = stateFilePath;
+                return model;
+            }
+            catch (IOException) { return (T)Activator.CreateInstance(typeof(T), new object[] { stateFilePath }); }
+            catch (InvalidOperationException) { return (T)Activator.CreateInstance(typeof(T), new object[] { stateFilePath }); }
+            catch (System.Xml.XmlException) { return (T)Activator.CreateInstance(typeof(T), new object[] { stateFilePath }); }
+            finally { stream?.Dispose(); }
         }
 
         protected virtual void RaisePropertyChangedEvent([CallerMemberName]string propertyName = null)

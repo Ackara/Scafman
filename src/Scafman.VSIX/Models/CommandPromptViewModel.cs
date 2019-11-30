@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -8,7 +7,7 @@ using System.Xml.Serialization;
 namespace Acklann.Scafman.Models
 {
     [XmlRoot(nameof(PromptBase))]
-    public sealed class CommandPromptViewModel : PromptBase, INotifyPropertyChanged
+    public sealed class CommandPromptViewModel : PromptBase
     {
         public CommandPromptViewModel() : this(GetDefaultFilePath())
         {
@@ -94,16 +93,7 @@ namespace Acklann.Scafman.Models
 
         public static CommandPromptViewModel Restore(string stateFilePath = default)
         {
-            if (stateFilePath == default) stateFilePath = GetDefaultFilePath();
-            if (!File.Exists(stateFilePath)) return new CommandPromptViewModel(stateFilePath);
-
-            using (Stream file = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                var serializer = new XmlSerializer(typeof(CommandPromptViewModel));
-                var model = (CommandPromptViewModel)serializer.Deserialize(file);
-                model.StateFilePath = stateFilePath;
-                return model;
-            }
+            return Restore<CommandPromptViewModel>(stateFilePath);
         }
 
         public static Task<CommandPromptViewModel> RestoreAsync() => Task.Run(() => Restore());

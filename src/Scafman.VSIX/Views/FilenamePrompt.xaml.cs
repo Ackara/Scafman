@@ -17,20 +17,30 @@ namespace Acklann.Scafman.Views
             WindowStartupLocation = (_model.Top <= Models.PromptBase.DEFAULT_POSITION ? WindowStartupLocation.CenterOwner : WindowStartupLocation.Manual);
         }
 
-        private void OnKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private void OnKeyPressedDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             switch (e.Key)
             {
-                default: _model.Validate(); break;
-
                 case System.Windows.Input.Key.Escape:
                     DialogResult = false;
                     Close();
                     break;
 
                 case System.Windows.Input.Key.Enter:
-                    DialogResult = _model.Validate();
+                    DialogResult = _model.Validate(InputBox.Text);
                     Close();
+                    break;
+            }
+        }
+
+        private void OnKeyReleased(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                default: _model.Validate(InputBox.Text); break;
+
+                case System.Windows.Input.Key.Enter:
+                case System.Windows.Input.Key.Escape:
                     break;
             }
         }

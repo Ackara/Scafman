@@ -14,11 +14,11 @@ namespace Acklann.Scafman
         public static string[] Split(string fileList)
         {
             if (string.IsNullOrEmpty(fileList)) return new string[0];
-
+            
             Group group; string input = "";
             var result = new List<string>();
             var pattern = new Regex(@"\((?<item>[^\)]+)\)", RegexOptions.IgnoreCase);
-            string[] list = fileList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] list = fileList.Split(new char[] { separator, ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < list.Length; i++)
             {
@@ -49,6 +49,33 @@ namespace Acklann.Scafman
         {
             if (string.IsNullOrEmpty(input)) yield break;
             foreach (string item in Split(input)) yield return Command.Parse(item);
+        }
+
+        public static bool ValidateFilename(string name, out string error)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                error = "A file name cannot be empty.";
+                return false;
+            }
+
+            char[] invalid = Path.GetInvalidFileNameChars();
+            int xn = name.Length, yn = invalid.Length;
+
+            for (int x = 0; x < xn; x++)
+            {
+                for (int y = 0; y < yn; y++)
+                {
+                    if (name[x] == invalid[y])
+                    {
+                        error = $"A file name cannot contain the '{invalid[y]}' character.";
+                        return false;
+                    }
+                }
+            }
+
+            error = null;
+            return true;
         }
 
         public static string GuessExtension(string projectFile, string location)

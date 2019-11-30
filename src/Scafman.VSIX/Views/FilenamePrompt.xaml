@@ -48,7 +48,8 @@
 
         <TextBox x:Name="InputBox"
                  Text="{Binding UserInput, Mode=TwoWay}"
-                 PreviewKeyUp="OnKeyUp"
+                 KeyUp="OnKeyReleased"
+                 KeyDown="OnKeyPressedDown"
                  Grid.Column="1" />
 
         <TextBlock Margin="{StaticResource VerticalGutter}"
@@ -62,8 +63,8 @@
         <Viewbox Visibility="{Binding HasValidInput, Converter={StaticResource VisibilityConverter}, ConverterParameter=true}"
                  VerticalAlignment="Bottom"
                  HorizontalAlignment="Left"
-                 Height="16"
-                 Width="16"
+                 Height="12"
+                 Width="12"
                  Grid.Row="2">
             <Viewbox.RenderTransform>
                 <TranslateTransform Y="-1" />

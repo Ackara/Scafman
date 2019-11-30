@@ -53,11 +53,10 @@ namespace Acklann.Scafman
 
             var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
-            bool? outcome = dialog.ShowDialog();
+            bool gotValue = (dialog.ShowDialog() ?? false);
             _commandPrompt.SaveAsync();
 
-            if (!outcome.HasValue || !outcome.Value) return null;
-            else return (_commandPrompt.UserInput ?? string.Empty).Trim();
+            return ((gotValue ? _commandPrompt.UserInput : null) ?? string.Empty).Trim();
         }
 
         private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter a file name")
@@ -65,12 +64,13 @@ namespace Acklann.Scafman
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _filePrompt.Initialize(cwd, defaultName);
+
             var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
-            bool? outcome = dialog.ShowDialog();
+            bool gotValue = (dialog.ShowDialog() ?? false);
             _filePrompt.SaveAsync();
 
-            return ((outcome.HasValue && outcome.Value && _filePrompt.HasValidInput) ? _filePrompt.FullPath : null);
+            return (gotValue ? _filePrompt.FullPath : null);
         }
 
         // ==================== Event Handlers ==================== //
@@ -170,7 +170,7 @@ namespace Acklann.Scafman
             if (!Directory.Exists(ConfigurationPage.UserTemplateDirectory))
             {
                 DialogResult answer = MessageBox.Show(
-                    $"You have not specified a template directory yet. Do you want to?",
+                    $"Before I can create your template I need to know where to save it; a template directory have not yet being specified. Do you want to add a directory?",
                     LocalizedString.GetWindowTitle(title),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
 
@@ -178,7 +178,6 @@ namespace Acklann.Scafman
                 {
                     ShowOptionPage(typeof(ConfigurationPage));
                 }
-
                 return;
             }
 

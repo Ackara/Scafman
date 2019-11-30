@@ -11,7 +11,7 @@
         Top="{Binding Top, Mode=TwoWay}"
         Left="{Binding Left, Mode=TwoWay}"
         Width="{Binding Width, Mode=TwoWay}"
-        Loaded="OnLoaded"
+        SourceInitialized="OnWindowSourceInitialized"
         mc:Ignorable="d">
     <d:Window.DataContext>
         <vm:CommandPromptViewModel UserInput="| New-Template @(mvc)"
@@ -43,6 +43,9 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Effect>
+        <DropShadowEffect/>
+    </Window.Effect>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -79,6 +82,7 @@
 
         <ListView ItemsSource="{Binding Options}"
                   SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                  Margin="{StaticResource VerticalGutter}"
                   Background="WhiteSmoke"
                   ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                   KeyboardNavigation.TabNavigation="None"
@@ -87,14 +91,15 @@
                   Grid.ColumnSpan="2">
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:SearchItem}">
-                    <StackPanel Style="{StaticResource ListItemPanel}"
-                                Orientation="Vertical">
-                        <TextBlock Text="{Binding Title}"
-                                   Style="{StaticResource IntellisenceTitle}" />
+                    <Border Style="{StaticResource ListItemPanel}">
+                        <StackPanel Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},Path=ActualWidth}">
+                            <TextBlock Text="{Binding Title}"
+                                       Style="{StaticResource IntellisenceTitle}" />
 
-                        <TextBlock Text="{Binding ToolTip}"
-                                   Style="{StaticResource IntellisenceTooltip}" />
-                    </StackPanel>
+                            <TextBlock Text="{Binding ToolTip}"
+                                       Style="{StaticResource IntellisenceTooltip}" />
+                        </StackPanel>
+                    </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

@@ -84,12 +84,7 @@ namespace Acklann.Scafman.Views
             }
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            Inputbox.Focus();
-        }
-
-        private void OnSourceInitialized(object sender, System.EventArgs e)
+        private void OnWindowSourceInitialized(object sender, System.EventArgs e)
         {
             Helper.HideMinimizeAndMaximizeButtons(this);
             Inputbox.Focus();

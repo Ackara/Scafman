@@ -124,7 +124,7 @@ namespace Acklann.Scafman.Tests
             case2.StartsWith("../index.d.ts");
         }
 
-        [TestMethod]
+        [DataTestMethod]
         [DataRow("", "", Switch.None)]
         [DataRow(null, "", Switch.None)]
         [DataRow("file.cs", "file.cs", Switch.AddFile)]
@@ -138,6 +138,19 @@ namespace Acklann.Scafman.Tests
             var case1 = Command.Parse(input);
             case1.Input.ShouldBe(expectedInput);
             case1.Kind.ShouldBe(expectedOption);
+        }
+
+        [DataTestMethod]
+        [DataRow("", false)]
+        [DataRow(null, false)]
+        [DataRow("foo.txt", true)]
+        [DataRow("f*o.txt", false)]
+        public void Can_validate_file_name(string name, bool expected)
+        {
+            var result = Template.ValidateFilename(name, out string message);
+
+            result.ShouldBe(expected, message);
+            if (result == false) message.ShouldNotBeNullOrEmpty();
         }
 
         [DataTestMethod]

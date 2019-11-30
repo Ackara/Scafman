@@ -1,5 +1,4 @@
 ﻿using Acklann.GlobN;
-using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -7,7 +6,7 @@ using System.Xml.Serialization;
 namespace Acklann.Scafman.Models
 {
     [XmlRoot(nameof(PromptBase))]
-    public sealed class FilenamePromptViewModel : PromptBase, INotifyPropertyChanged
+    public sealed class FilenamePromptViewModel : PromptBase
     {
         public FilenamePromptViewModel() : this(GetDefaultFilePath())
         {
@@ -81,42 +80,47 @@ namespace Acklann.Scafman.Models
 
         public static FilenamePromptViewModel Restore(string stateFilePath = default)
         {
-            if (stateFilePath == default) stateFilePath = GetDefaultFilePath();
-            if (!File.Exists(stateFilePath)) return new FilenamePromptViewModel(stateFilePath);
-
-            using (var stream = new FileStream(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                var serializer = new XmlSerializer(typeof(FilenamePromptViewModel));
-                var model = (FilenamePromptViewModel)serializer.Deserialize(stream);
-                model.StateFilePath = stateFilePath;
-                return model;
-            }
+            return Restore<FilenamePromptViewModel>(stateFilePath);
         }
 
         public static Task<FilenamePromptViewModel> RestoreAsync(string documentPath = default) => Task.Run(() => Restore(documentPath));
+
+        public string GetFullPath(string filename)
+        {
+            if (string.IsNullOrEmpty(filename)) return null;
+            else return ((Glob)filename).ExpandPath(_projectDirectory);
+        }
 
         public void Initialize(string cwd = default, string filename = default)
         {
             _projectDirectory = cwd;
             _userInput = filename;
             _isValid = true;
+
+            Validate(filename);
         }
 
-        public bool Validate()
+        public bool Validate(string name)
         {
-            string x = FullPath;
+            string x = GetFullPath(name);
 
-            if (!Path.IsPathRooted(x))
+            if (!Template.ValidateFilename(Path.GetFileName(x), out string error))
+            {
+                Message = error;
+                return HasValidInput = false;
+            }
+            else if (!Path.IsPathRooted(x))
             {
                 Message = "The path is not rooted.";
                 return HasValidInput = false;
             }
-            else if (!File.Exists(x))
+            else if (File.Exists(x))
             {
-                Message = "A file with the same name already exists.";
+                Message = "The file already exist.";
                 return HasValidInput = false;
             }
 
+            Message = null;
             return HasValidInput = true;
         }
 
