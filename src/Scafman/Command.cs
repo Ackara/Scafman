@@ -21,7 +21,7 @@
             if (colon > -1)
             {
                 string flag = text.Substring(0, colon).ToLowerInvariant();
-                return new Command(text.Substring(colon + 1).Trim(), ToSwitch(flag));
+                return new Command(text.Substring(colon + 1).Trim(), GetPackageType(flag));
             }
             else if (text.EndsWith("/") || text.EndsWith("\\"))
                 return new Command(text, Switch.AddFolder);
@@ -29,7 +29,7 @@
                 return new Command(text, Switch.AddFile);
         }
 
-        public static Switch ToSwitch(string text)
+        public static Switch GetPackageType(string text)
         {
             switch (text.Replace(" ", string.Empty).ToLowerInvariant())
             {

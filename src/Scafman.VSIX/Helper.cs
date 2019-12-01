@@ -1,5 +1,4 @@
-﻿using Acklann.GlobN;
-using Microsoft.VisualStudio.ComponentModelHost;
+﻿using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -17,18 +16,18 @@ namespace Acklann.Scafman
     {
         // ==================== EnvDTE.Project ==================== //
 
-        public static void AddTemplateFile(this EnvDTE.Project project, string filePath, string cwd, ProjectContext context, string[] templateDirectories, out string outFile, out int position)
+        public static void AddTemplateFile(this EnvDTE.DTE dte, string input, ProjectContext context, string[] templateDirectories, out string outFile, out int position)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            if (dte == null) throw new ArgumentNullException(nameof(dte));
 
             position = -1;
-            string templatePath = outFile = filePath;
-            outFile = ((Glob)outFile).ExpandPath(cwd);
+            context.GetFullPaths(input, out outFile, out string cwd);
             if (File.Exists(outFile)) return;
 
             // Building the template.
             string fileContent = string.Empty;
-            templatePath = Template.Find(Path.GetFileName(templatePath), templateDirectories);
+            string templatePath = Template.Find(Path.GetFileName(outFile), templateDirectories);
             if (!string.IsNullOrEmpty(templatePath))
             {
                 fileContent = Template.Replace(File.ReadAllText(templatePath), context, outFile, cwd);
@@ -36,7 +35,12 @@ namespace Acklann.Scafman
             }
 
             // Create the template file.
-            AddFile(project, outFile, fileContent);
+            AddFile(
+                GetProject(
+                    dte,
+                    ((context.ProjectName != null && cwd.Contains(context.ProjectDirectory)) ? context.ProjectName : null)),
+                outFile,
+                fileContent);
         }
 
         public static EnvDTE.ProjectItem AddFile(this EnvDTE.Project project, string path, string content)
@@ -52,6 +56,7 @@ namespace Acklann.Scafman
         public static EnvDTE.ProjectItems AddFolder(this EnvDTE.Project project, string fullPath)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            if (project == null) return null;
 
             if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")/* virtual folder */
             {
@@ -76,11 +81,11 @@ namespace Acklann.Scafman
             return folder;
         }
 
-        public static EnvDTE.Project GetSolutionFolder(this EnvDTE.DTE dte, string name = default)
+        public static EnvDTE.Project GetProject(this EnvDTE.DTE dte, string name = default)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             if (dte == null) throw new ArgumentNullException(nameof(dte));
-            if (string.IsNullOrEmpty(name)) name = ConfigurationPage.SolutionFolderName;
+            if (name == default) name = ConfigurationPage.SolutionFolderName;
 
             foreach (EnvDTE.Project item in dte.Solution.Projects)
                 if (string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
@@ -114,14 +119,14 @@ namespace Acklann.Scafman
 
         // ==================== EnvDTE.DTE ==================== //
 
-        public static void GetContext(this EnvDTE.DTE dte, out EnvDTE.Project project, out ProjectContext context)
+        public static void GetProjectContext(this EnvDTE.DTE dte, out ProjectContext context, out EnvDTE.Project project)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             if (dte == null) throw new ArgumentNullException(nameof(dte));
 
             project = null;
             var selection = new List<string>();
-            string projectPath = null, projectItemPath = null, rootNamespace = null, assemblyName = null, version = null;
+            string projectPath = null, selectedItem = null, rootNamespace = null, assemblyName = null, version = null;
 
             // Capturing all of the items currently selected by the user.
             EnvDTE.SelectedItems selectedItems = dte.SelectedItems;
@@ -144,7 +149,7 @@ namespace Acklann.Scafman
                         selection.Add(item.Project.FullName);
                     }
 
-                projectItemPath = selection.LastOrDefault();
+                selectedItem = selection.LastOrDefault();
             }
 
             if (project != null)
@@ -156,21 +161,9 @@ namespace Acklann.Scafman
 
             context = new ProjectContext(
                 dte.Solution.FullName,
-                projectPath, projectItemPath, selection.ToArray(),
-                rootNamespace, assemblyName, version
+                projectPath, selectedItem, rootNamespace,
+                assemblyName, version
                 );
-        }
-
-        public static string GetLocation(this ProjectContext context)
-        {
-            if (!string.IsNullOrEmpty(context.ProjectItemPath))
-                return Path.GetDirectoryName(context.ProjectItemPath);
-            else if (!string.IsNullOrEmpty(context.ProjectFilePath))
-                return Path.GetDirectoryName(context.ProjectFilePath);
-            else if (!string.IsNullOrEmpty(context.SolutionFilePath))
-                return Path.GetDirectoryName(context.SolutionFilePath);
-            else
-                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
         // ==================== Misc ==================== //

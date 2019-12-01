@@ -113,7 +113,7 @@ namespace Acklann.Scafman.Models
         public void CompleteCommand(string input)
         {
             if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
-            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessExtension(_project, _location)));
+            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
 
             Options.Clear();
         }

@@ -26,7 +26,6 @@ namespace Acklann.Scafman
                 "sln",
                 "proj",
                 "projItem",
-                new string[] { },
                 "ns",
                 "assembly",
                 "ver"

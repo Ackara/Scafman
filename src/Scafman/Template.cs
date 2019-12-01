@@ -14,7 +14,7 @@ namespace Acklann.Scafman
         public static string[] Split(string fileList)
         {
             if (string.IsNullOrEmpty(fileList)) return new string[0];
-            
+
             Group group; string input = "";
             var result = new List<string>();
             var pattern = new Regex(@"\((?<item>[^\)]+)\)", RegexOptions.IgnoreCase);
@@ -78,14 +78,14 @@ namespace Acklann.Scafman
             return true;
         }
 
-        public static string GuessExtension(string projectFile, string location)
+        public static string GuessFileExtension(string projectFile, string currentWorkingDirectory)
         {
-            if (Directory.Exists(location))
+            if (Directory.Exists(currentWorkingDirectory))
             {
-                var extensions = (from x in Directory.EnumerateFiles(location) select Path.GetExtension(x))
-                    .Take(3)
-                    .Distinct();
-                if (extensions.Count() == 1) return extensions.First();
+                // We will look at the first (n) extensions within the directory, then pick one at random.
+                // The idea is that dominate file-type should be chosen due to high probability.
+                var extensions = (Directory.EnumerateFiles(currentWorkingDirectory).Select(x => Path.GetExtension(x))).Take(10).ToArray();
+                if (extensions.Length > 1) return extensions[new Random().Next(0, extensions.Length - 1)];
             }
 
             if (string.IsNullOrEmpty(projectFile)) return string.Empty;
@@ -171,7 +171,7 @@ namespace Acklann.Scafman
 
             foreach (var pair in replacementTokens)
             {
-                text = Regex.Replace(text, $@"(\${pair.Key}\$|{{{pair.Key}}})", (pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
+                text = Regex.Replace(text, $@"\${pair.Key}\$", (pair.Value ?? string.Empty), RegexOptions.IgnoreCase);
             }
 
             return text;
@@ -187,10 +187,10 @@ namespace Acklann.Scafman
             string safe(string x) => illegalPattern.Replace(x, string.Empty);
             string repl(string k, string v) => (string.IsNullOrEmpty(v) ? text : text.Replace(k, v));
 
-            string subFolder = GetSubfolder(outputFilePath, Path.GetDirectoryName(context.ProjectFilePath), currentWorkingDirectory);
+            string subFolder = GetSubfolder(outputFilePath, context.ProjectDirectory, currentWorkingDirectory);
 
             string token;
-            foreach (Match match in Regex.Matches(text, $@"\$(?<{nameof(token)}>[^\$]+)\$", RegexOptions.IgnoreCase))
+            foreach (Match match in Regex.Matches(text, @"\$(?<token>[^\$]+)\$", RegexOptions.IgnoreCase))
             {
                 token = match.Value;
                 switch (match.Groups[nameof(token)].Value.ToLowerInvariant())
@@ -204,8 +204,8 @@ namespace Acklann.Scafman
 
                     case "namespace": text = repl(token, context.RootNamespace); break;
                     case "rootnamespace": text = repl(token, ToNamespace(context.RootNamespace, subFolder)); break;
-                    case "projectname": text = repl(token, Path.GetFileNameWithoutExtension(context.ProjectFilePath)); break;
-                    case "safeprojectname": text = repl(token, safe(Path.GetFileNameWithoutExtension(context.ProjectFilePath))); break;
+                    case "projectname": text = repl(token, context.ProjectName); break;
+                    case "safeprojectname": text = repl(token, safe(context.ProjectName)); break;
 
                     case "subfolder": text = repl(token, subFolder); break;
                     case "foldername": text = repl(token, Path.GetFileName(Path.GetDirectoryName(outputFilePath))); break;
@@ -224,7 +224,7 @@ namespace Acklann.Scafman
                     case "guid": text = repl(token, Guid.NewGuid().ToString()); break;
 
                     case "solutionname":
-                    case "specificsolutionname": text = repl(token, safe(Path.GetFileNameWithoutExtension(context.SolutionFilePath))); break;
+                    case "specificsolutionname": text = repl(token, safe(context.SolutionName)); break;
                 }
             }
 
@@ -233,7 +233,7 @@ namespace Acklann.Scafman
 
         public static string Find(string fileName, params string[] templateDirectories)
         {
-            if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
+            if (string.IsNullOrEmpty(fileName)) return null;
 
             string templatePath;
             foreach (string folder in templateDirectories)
@@ -246,28 +246,46 @@ namespace Acklann.Scafman
             return null;
         }
 
-        internal static string Find(string[] templateFiles, string filename)
+        /// <summary>
+        /// Returns the first template file that match the specified <paramref name="keywords"/>
+        /// </summary>
+        /// <remarks>
+        /// <para>The name of a template can contain mulitple file-names separted by a semi-colon.</para>
+        /// </remarks>
+        /// <param name="templateFiles">The full path of templates to search from.</param>
+        /// <param name="keywords">The keywords.</param>
+        internal static string Find(string[] templateFiles, string keywords)
         {
-            filename = Path.GetFileName(filename);
+            keywords = Path.GetFileName(keywords);
+            (string templatePath, int matchStrength) match = (default, default);
+            string[] templateAliases; string name;
 
-            // Attemp #1: Checking to see if I can get an exact match first.
-            foreach (string path in templateFiles.Where(x => !x.Contains("~")))
-                if (string.Equals(filename, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
-                {
-                    return path;
-                }
-
-            // Attempt #2: Treating (~) as a wildcard, find the first template that best math the
-            // file name.
-            foreach (string path in templateFiles.Where(x => x.Contains("~")).OrderByDescending(x => x.Length))
+            for (int i = 0; i < templateFiles.Length; i++)
             {
-                // TODO: Replace with GlobN
-                //Glob pattern = Path.GetFileName(path).Replace('~', '*');
-                var pattern = new Regex($"^{Path.GetFileName(path).Replace(".", @"\.").Replace("~", ".+")}$", RegexOptions.IgnoreCase);
-                if (pattern.IsMatch(filename)) return path;
+                // A template file may contain multiple names. So we have to extract those names/aliases.
+                templateAliases = Path.GetFileName(templateFiles[i]).Split(new char[] { separator, ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                for (int n = 0; n < templateAliases.Length; n++)
+                {
+                    name = templateAliases[n];
+                    if (name.Contains("~" /* = wild-card(*) */))
+                    {
+                        // To get the best match. We will favor the match with the most characters in its name. Why?
+                        // The more characters you match, the more specific.
+                        var pattern = new Regex(name.Replace(".", "\\.").Replace("~", ".+"), RegexOptions.IgnoreCase);
+                        if (pattern.IsMatch(keywords) && name.Length > match.matchStrength)
+                            match = (templateFiles[i], name.Length);
+                    }
+                    else /* Exact-Match */
+                    {
+                        // An exact match is prefered, so if found return it right away.
+                        if (string.Equals(keywords, name, StringComparison.OrdinalIgnoreCase))
+                            return templateFiles[i];
+                    }
+                }
             }
 
-            return null;
+            return match.templatePath;
         }
 
         internal static string ToUpDirectoryTokens(string path)
@@ -278,7 +296,7 @@ namespace Acklann.Scafman
             return string.Join("/", Enumerable.Repeat("..", depth));
         }
 
-        internal static string ToSafeItem(string path)
+        private static string ToSafeItem(string path)
         {
             if (string.IsNullOrEmpty(path)) return string.Empty;
 
@@ -286,7 +304,7 @@ namespace Acklann.Scafman
             return x.Substring(0, x.IndexOf('.'));
         }
 
-        internal static string ToNamespace(string rootNamespace, string path)
+        private static string ToNamespace(string rootNamespace, string path)
         {
             if (string.IsNullOrEmpty(path)) return rootNamespace;
             else return string.Join(".", rootNamespace, string.Join(".", path.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))).Trim('.', ' ');

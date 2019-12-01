@@ -1,5 +1,4 @@
-﻿using Acklann.GlobN;
-using Microsoft.VisualStudio.ComponentModelHost;
+﻿using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using NuGet.VisualStudio;
 using System;
@@ -44,19 +43,20 @@ namespace Acklann.Scafman
             }
         }
 
-        private string GetCommandFromUser(string cwd, string title = "Enter a command")
+        private string GetCommandFromUser(ProjectContext context, string title = "Enter a command")
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _commandPrompt.Reset();
-            _commandPrompt.Location = cwd;
+            _commandPrompt.Location = context.CurrentDirectory;
+            _commandPrompt.Project = context.ProjectFilePath;
 
             var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
             bool gotValue = (dialog.ShowDialog() ?? false);
             _commandPrompt.SaveAsync();
 
-            return ((gotValue ? _commandPrompt.UserInput : null) ?? string.Empty).Trim();
+            return (gotValue ? _commandPrompt.UserInput : null)?.Trim();
         }
 
         private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter a file name")
@@ -64,7 +64,6 @@ namespace Acklann.Scafman
             ThreadHelper.ThrowIfNotOnUIThread();
 
             _filePrompt.Initialize(cwd, defaultName);
-
             var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
             bool gotValue = (dialog.ShowDialog() ?? false);
@@ -78,12 +77,10 @@ namespace Acklann.Scafman
         private void OnAddNewItemCommandInvoked(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            vs.GetContext(out EnvDTE.Project project, out ProjectContext context);
+            vs.GetProjectContext(out ProjectContext context, out EnvDTE.Project project);
 
             string command = null;
-            _commandPrompt.Project = context.ProjectFilePath;
-            string cwd = Helper.GetLocation(context);
-            if (string.IsNullOrEmpty(command)) command = GetCommandFromUser(cwd);
+            if (string.IsNullOrEmpty(command)) command = GetCommandFromUser(context);
             if (string.IsNullOrEmpty(command)) return;
             PrintInfo(context);
 
@@ -95,11 +92,11 @@ namespace Acklann.Scafman
                 switch (item.Kind)
                 {
                     case Switch.AddFolder:
-                        (project ?? vs.GetSolutionFolder()).AddFolder(item.Input.ExpandPath(cwd));
+                        project?.AddFolder(context.GetFullPath(item.Input));
                         break;
 
                     case Switch.AddFile:
-                        (project ?? vs.GetSolutionFolder()).AddTemplateFile(item.Input, cwd, context, ConfigurationPage.GetAllTemplateDirectories(), out string newFilePath, out int startingPosition);
+                        vs.AddTemplateFile(item.Input, context, ConfigurationPage.GetAllTemplateDirectories(), out string newFilePath, out int startingPosition);
                         if (File.Exists(newFilePath))
                         {
                             VsShellUtilities.OpenDocument(this, newFilePath);
@@ -238,8 +235,7 @@ namespace Acklann.Scafman
 #if DEBUG
             System.Diagnostics.Debug.WriteLine($"solution: {context.SolutionFilePath}");
             System.Diagnostics.Debug.WriteLine($"project: {context.ProjectFilePath}");
-            System.Diagnostics.Debug.WriteLine($"project-item: {context.ProjectItemPath}");
-            System.Diagnostics.Debug.WriteLine($"selected-items: " + string.Join(" | ", context.SelectedItems));
+            System.Diagnostics.Debug.WriteLine($"project-item: {context.SelectedItemPath}");
             System.Diagnostics.Debug.WriteLine($"namespace: {context.RootNamespace}");
             System.Diagnostics.Debug.WriteLine($"assembly: {context.Assemblyname}");
             System.Diagnostics.Debug.WriteLine($"version: {context.Version}");

@@ -11,35 +11,39 @@ namespace Acklann.Scafman.Tests
     public class TemplateTest
     {
         [DataTestMethod]
+        [DataRow("", null)]
+        [DataRow(null, null)]
         [DataRow("package.json", null)]
-        [DataRow("Person.cst", "~.cst")]
+        [DataRow("Person.cs", "~.cs")]
         [DataRow("IAnimal.cst", "I~.cst")]
-        [DataRow("Subscriber.cst", "~.cst")]
         [DataRow("Symbol.cst", "symbol.cst")]
         [DataRow("FooTest.cst", "~Test.cst")]
-        [DataRow("HomeController.cst", "~Controller.cst")]
-        public void Can_match_filename_to_a_template(string filename, string expectedFile)
+        [DataRow("Helper.cs", "Helper.cs,~Exentions.cs")]
+        public void Can_match_filename_to_a_template(string filename, string template)
         {
+            // Arrange
+            var directory = Path.Combine(Path.GetTempPath(), "mock-templates");
+            string expectedFile = Path.Combine(directory, (template ?? string.Empty));
+            string folder = Path.GetDirectoryName(expectedFile);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            if (!File.Exists(expectedFile) && Path.HasExtension(expectedFile)) File.Create(expectedFile).Dispose();
+
             // Act
-            var directory = SampleFactory.DirectoryName;
-            var filePath = Template.Find(filename, directory);
-            if (expectedFile == null && filePath == null) return;
-            var file = new FileInfo(filePath);
+            var result = Template.Find(filename, directory);
+            result = Path.GetFileName(result);
 
             // Assert
-            file.Exists.ShouldBeTrue();
-            file.DirectoryName.ShouldContain(directory);
-            file.Name.ShouldBe(expectedFile, StringCompareShould.IgnoreCase);
+            result.ShouldBe(template);
         }
 
         [DataTestMethod]
         [DataRow("/app/person", ".cs")]
-        [DataRow("foo.cs > bar", ".cs")]
+        [DataRow("bar", ".cs")]
         public void Can_guess_file_extension(string path, string expectedExtension)
         {
             string projectFile = Path.Combine(Path.GetTempPath(), "app.csproj");
 
-            var result = Template.GuessExtension(projectFile, Path.GetTempPath());
+            var result = Template.GuessFileExtension(projectFile, Path.GetTempPath());
             if (path == null) Assert.AreEqual(result, string.Empty);
             else result.ShouldBe(expectedExtension);
         }
@@ -102,7 +106,6 @@ namespace Acklann.Scafman.Tests
                 Path.Combine(baseFolder, "Sample.sln"),
                 Path.Combine(baseFolder, "src", "Core", "Core.csproj"),
                 outFile,
-                new string[] { },
                 $"{nameof(Scafman)}.Web",
                 nameof(Scafman),
                 "0.0.1"

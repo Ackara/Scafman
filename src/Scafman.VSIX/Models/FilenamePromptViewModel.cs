@@ -29,13 +29,13 @@ namespace Acklann.Scafman.Models
         }
 
         [XmlIgnore]
-        public string CurrenntDirectory
+        public string CurrentDirectory
         {
-            get => _projectDirectory;
+            get => _currentDirectory;
             set
             {
-                _projectDirectory = value;
-                RaisePropertyChangedEvent();
+                _currentDirectory = value;
+                RaisePropertyChangedEvent(nameof(CurrentDirectory));
                 RaisePropertyChangedEvent(nameof(FolderName));
             }
         }
@@ -43,7 +43,7 @@ namespace Acklann.Scafman.Models
         [XmlIgnore]
         public string FolderName
         {
-            get => string.Concat(Path.GetFileName(CurrenntDirectory).Trim('\\', '/'), '\\');
+            get => string.Concat(Path.GetFileName(CurrentDirectory).Trim('\\', '/'), '\\');
         }
 
         [XmlIgnore]
@@ -71,11 +71,7 @@ namespace Acklann.Scafman.Models
         [XmlIgnore]
         public string FullPath
         {
-            get
-            {
-                if (string.IsNullOrEmpty(_userInput)) return null;
-                else return ((Glob)_userInput).ExpandPath(_projectDirectory);
-            }
+            get => GetFullPath(_userInput?.Trim());
         }
 
         public static FilenamePromptViewModel Restore(string stateFilePath = default)
@@ -88,12 +84,12 @@ namespace Acklann.Scafman.Models
         public string GetFullPath(string filename)
         {
             if (string.IsNullOrEmpty(filename)) return null;
-            else return ((Glob)filename).ExpandPath(_projectDirectory);
+            else return ((Glob)filename).ExpandPath(_currentDirectory);
         }
 
         public void Initialize(string cwd = default, string filename = default)
         {
-            _projectDirectory = cwd;
+            _currentDirectory = cwd;
             _userInput = filename;
             _isValid = true;
 
@@ -126,7 +122,7 @@ namespace Acklann.Scafman.Models
 
         #region Backing Members
 
-        private string _userInput, _projectDirectory, _message;
+        private string _userInput, _currentDirectory, _message;
         private bool _isValid;
 
         #endregion Backing Members
