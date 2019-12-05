@@ -37,13 +37,15 @@ namespace Acklann.Scafman.Tests
         }
 
         [DataTestMethod]
-        [DataRow("/app/person", ".cs")]
         [DataRow("bar", ".cs")]
+        [DataRow("/app/person", ".cs")]
         public void Can_guess_file_extension(string path, string expectedExtension)
         {
-            string projectFile = Path.Combine(Path.GetTempPath(), "app.csproj");
+            string projectFile = Path.Combine(Path.GetTempPath(), "guess-ext", "app.csproj");
+            string folder = Path.GetDirectoryName(projectFile);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-            var result = Template.GuessFileExtension(projectFile, Path.GetTempPath());
+            var result = Template.GuessFileExtension(projectFile, folder);
             if (path == null) Assert.AreEqual(result, string.Empty);
             else result.ShouldBe(expectedExtension);
         }

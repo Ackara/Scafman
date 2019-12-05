@@ -4,9 +4,9 @@ namespace Acklann.Scafman
 {
 	public static class Metadata
 	{
-		public const string Name = "$(Title)";
+		public const string Name = "Scafman";
 		
-		public const string Version = "1.0.0.0";
+		public const string Version = "0.0.24";
 
 		public class Package
 		{
@@ -17,7 +17,7 @@ namespace Acklann.Scafman
 		{
 			public const string GuidString = "1927fb07-3e0c-4213-8cc1-f87f1df0ab42";
 			public static readonly Guid Guid = new Guid("1927fb07-3e0c-4213-8cc1-f87f1df0ab42");
-			public const int VSToolsMenuGroup = 0x1020;
+			public const int VSMenuGroup = 0x1020;
 			public const int MainCommadGroup = 0x103;
 			public const int MiscCommandGroup = 0x104;
 			public const int ManagementCommandGroup = 0x105;
