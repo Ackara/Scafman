@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Acklann.Scafman</RootNamespace>
@@ -7,9 +7,9 @@
 
   <PropertyGroup Label="Package">
     <Title>Scafman</Title>
-    <Version>0.0.23</Version>
-    <AssemblyVersion>0.0.23</AssemblyVersion>
-    <Description>A template manager.</Description>
+    <Version>0.0.24</Version>
+    <AssemblyVersion>0.0.24</AssemblyVersion>
+    <Description>A file-based template manager.</Description>
 
     <Authors>Ackara</Authors>
     <Company>Ackara</Company>

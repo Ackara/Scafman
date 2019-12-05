@@ -1,12 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Scafman.VSIX.8ad302e3-0136-416b-9626-124033e6abb7" Version="1.0" Language="en-US" Publisher="Ackara" />
-        <DisplayName>Scafman.VSIX</DisplayName>
-        <Description xml:space="preserve">Empty VSIX Project.</Description>
+        <Identity Id="Scafman.VSIX.8ad302e3-0136-416b-9626-124033e6abb7" Version="0.0.24" Language="en-US" Publisher="Ackara" />
+        <DisplayName>Scafman</DisplayName>
+        <Description xml:space="preserve">A file-based template manager.</Description>
         <MoreInfo>https://github.com/Ackara/Scafman</MoreInfo>
         <Icon>Resources\logo.png</Icon>
-    </Metadata>
+    <Tags>template manager add file package</Tags>
+</Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />
     </Installation>

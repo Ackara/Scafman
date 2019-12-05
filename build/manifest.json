@@ -1,11 +1,10 @@
 ﻿{
   "name": "Scafman",
   "description": "A file-based template manager.",
-  "version":
-  {
+  "version": {
     "major": 0,
     "minor": 0,
-    "patch": 23
+    "patch": 24
   },
   "authors": "Ackara",
   "company": "Ackara",
@@ -16,8 +15,7 @@
   "releaseNotes": "https://github.com/{company}/{name}/blob/master/changelog.md",
   "tags": "template manager add file package",
   "icon": "icon.png",
-  "branchVersionMap":
-  {
+  "branchVersionMap": {
     "master": "C",
     "default": "x.y.z-\\beta"
   }
