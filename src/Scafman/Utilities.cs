@@ -9,14 +9,14 @@ namespace Acklann.Scafman
         {
             if (string.IsNullOrEmpty(itemname)) throw new ArgumentNullException(nameof(itemname));
 
-            if (itemname.StartsWith(@"\\"))
+            if (itemname.StartsWith(@"\\") || itemname.StartsWith("//"))
                 currentDirectory = context.SolutionDirectory;
-            else if (itemname.StartsWith(@"\"))
+            else if (itemname.StartsWith(@"\") || itemname.StartsWith("/"))
                 currentDirectory = context.ProjectDirectory;
             else
                 currentDirectory = context.CurrentDirectory;
 
-            itemPath = ((Glob)itemname.TrimStart('\\', ' ')).ExpandPath(currentDirectory);
+            itemPath = ((Glob)itemname.TrimStart('\\', '/', ' ')).ExpandPath(currentDirectory);
         }
 
         public static string GetFullPath(this ProjectContext context, string itemname)
