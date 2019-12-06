@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Acklann.Scafman.Tests
@@ -10,9 +9,9 @@ namespace Acklann.Scafman.Tests
     public class IntellisenseTest
     {
         [DataTestMethod]
-        //[DataRow("", "")]
-        //[DataRow(null, "")]
-        //[DataRow("@", "build|css|js")]
+        [DataRow("", "")]
+        [DataRow(null, "")]
+        [DataRow("@", "build|css|js")]
         [DataRow("@(b", "build"), DataRow("@(bu", "build"), DataRow("@(build", "build")]
         public void Can_fetch_itemGroup_options(string input, string expected)
         {
@@ -42,6 +41,5 @@ namespace Acklann.Scafman.Tests
             // Assert
             results.FullText.ShouldBe(expected);
         }
-
     }
 }

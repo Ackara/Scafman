@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Acklann.Scafman</RootNamespace>
@@ -7,8 +7,8 @@
 
   <PropertyGroup Label="Package">
     <Title>Scafman</Title>
-    <Version>0.0.31</Version>
-    <AssemblyVersion>0.0.31</AssemblyVersion>
+    <Version>0.0.33</Version>
+    <AssemblyVersion>0.0.33</AssemblyVersion>
     <Description>A file-based template manager.</Description>
 
     <Authors>Ackara</Authors>
@@ -22,8 +22,18 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>template manager add file package</PackageTags>
   
-<AssemblyFileVersion>0.0.31</AssemblyFileVersion>
+<AssemblyFileVersion>0.0.33</AssemblyFileVersion>
 </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="schema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="schema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />

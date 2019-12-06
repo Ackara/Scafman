@@ -34,11 +34,11 @@ namespace Acklann.Scafman.Views
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey?.IsDown ?? false) _model.ActivateIntellisense();
+                    if (_shiftKey?.IsDown ?? false) _model.ShowIntellisense();
                     break;
 
                 case Key.OemSemicolon: // ')' key
-                    _model.DisableIntellisense();
+                    _model.HideIntellisense();
                     break;
 
                 case Key.Up:
@@ -64,11 +64,11 @@ namespace Acklann.Scafman.Views
                     break;
 
                 case Key.D0:
-                    if (_shiftKey?.IsDown ?? false) _model.DisableIntellisense();
+                    if (_shiftKey?.IsDown ?? false) _model.HideIntellisense();
                     break;
 
                 case Key.OemComma:
-                    _model.DisableIntellisense();
+                    _model.HideIntellisense();
                     break;
             }
         }

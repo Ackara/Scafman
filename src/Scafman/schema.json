@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "ItemGroup",
+
+  "type": "array",
+  "items":
+  [
+    {
+      "type": "object",
+      "properties":
+      {
+        "name":
+        {
+          "type": "string"
+        },
+        "fileList":
+        {
+          "type": "array",
+          "items":
+          {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  ]
+}

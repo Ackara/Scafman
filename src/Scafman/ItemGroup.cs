@@ -16,10 +16,14 @@ namespace Acklann.Scafman
         {
             if (!File.Exists(filePath)) throw new FileNotFoundException($"Could not find item-group configuraiton file at '{filePath}'.");
 
-            using (Stream file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (Stream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new StreamReader(stream))
             {
-                var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(ItemGroup[]));
-                return (ItemGroup[])serializer.ReadObject(file);
+                var settings = new Newtonsoft.Json.JsonSerializerSettings
+                {
+                    ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver() { NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy() }
+                };
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<ItemGroup[]>(reader.ReadToEnd());
             }
         }
 

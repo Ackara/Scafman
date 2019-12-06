@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Scafman.VSIX")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A file-based template manager.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Ackara")]
 [assembly: AssemblyProduct("Scafman")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("Copyright 2019 Ackara, All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.31")]
-[assembly: AssemblyFileVersion("0.0.31")]
+[assembly: AssemblyVersion("0.0.33")]
+[assembly: AssemblyFileVersion("0.0.33")]

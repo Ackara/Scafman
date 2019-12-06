@@ -136,18 +136,17 @@ namespace Acklann.Scafman.Models
             _intellisenseActivated = false;
         }
 
-        public void ActivateIntellisense() => SetIntellisense(true);
+        public void ShowIntellisense() => SetIntellisense(true);
 
-        public void DisableIntellisense() => SetIntellisense(false);
+        public void HideIntellisense() => SetIntellisense(false);
 
         private void SetIntellisense(bool on)
         {
-            if (on) Task.Run(() =>
+            if (on && File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath)) Task.Run(() =>
             {
-                if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath))
-                    try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupConfigurationFilePath); }
-                    catch (System.Runtime.Serialization.SerializationException) { }
-                    catch (IOException) { }
+                try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupConfigurationFilePath); }
+                catch (System.Runtime.Serialization.SerializationException) { }
+                catch (IOException) { }
             });
 
             _intellisenseActivated = on;
