@@ -7,8 +7,8 @@
 
   <PropertyGroup Label="Package">
     <Title>Scafman</Title>
-    <Version>0.0.24</Version>
-    <AssemblyVersion>0.0.24</AssemblyVersion>
+    <Version>0.0.30</Version>
+    <AssemblyVersion>0.0.30</AssemblyVersion>
     <Description>A file-based template manager.</Description>
 
     <Authors>Ackara</Authors>
@@ -21,10 +21,14 @@
     <PackageReleaseNotes>https://github.com/Ackara/Scafman/blob/master/changelog.md</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>template manager add file package</PackageTags>
-  </PropertyGroup>
+  
+<AssemblyFileVersion>0.0.30</AssemblyFileVersion>
+</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
+
+
 </Project>
