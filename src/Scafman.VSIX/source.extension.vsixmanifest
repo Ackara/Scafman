@@ -2,7 +2,7 @@
 
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Scafman.VSIX.8ad302e3-0136-416b-9626-124033e6abb7" Version="0.0.30" Language="en-US" Publisher="Ackara" />
+        <Identity Id="Scafman.VSIX.8ad302e3-0136-416b-9626-124033e6abb7" Version="0.0.31" Language="en-US" Publisher="Ackara" />
         <DisplayName>Scafman</DisplayName>
         <Description xml:space="preserve">A file-based template manager.</Description>
         <MoreInfo>https://github.com/Ackara/Scafman</MoreInfo>

@@ -7,8 +7,8 @@
 
   <PropertyGroup Label="Package">
     <Title>Scafman</Title>
-    <Version>0.0.30</Version>
-    <AssemblyVersion>0.0.30</AssemblyVersion>
+    <Version>0.0.31</Version>
+    <AssemblyVersion>0.0.31</AssemblyVersion>
     <Description>A file-based template manager.</Description>
 
     <Authors>Ackara</Authors>
@@ -22,7 +22,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>template manager add file package</PackageTags>
   
-<AssemblyFileVersion>0.0.30</AssemblyFileVersion>
+<AssemblyFileVersion>0.0.31</AssemblyFileVersion>
 </PropertyGroup>
 
   <ItemGroup>
