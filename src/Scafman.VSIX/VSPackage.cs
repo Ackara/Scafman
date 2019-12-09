@@ -43,7 +43,20 @@ namespace Acklann.Scafman
             }
         }
 
-        private string GetCommandFromUser(ProjectContext context, string title = "Enter a command")
+        private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter file name")
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            _filePrompt.Initialize(cwd, defaultName);
+            var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
+            dialog.Title = LocalizedString.GetWindowTitle(title);
+            bool gotValue = (dialog.ShowDialog() ?? false);
+            _filePrompt.SaveAsync();
+
+            return (gotValue ? _filePrompt.FullPath : null);
+        }
+
+        private string GetCommandFromUser(ProjectContext context, string title = "Enter file name")
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -57,19 +70,6 @@ namespace Acklann.Scafman
             _commandPrompt.SaveAsync();
 
             return (gotValue ? _commandPrompt.UserInput : null)?.Trim();
-        }
-
-        private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter a file name")
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            _filePrompt.Initialize(cwd, defaultName);
-            var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
-            dialog.Title = LocalizedString.GetWindowTitle(title);
-            bool gotValue = (dialog.ShowDialog() ?? false);
-            _filePrompt.SaveAsync();
-
-            return (gotValue ? _filePrompt.FullPath : null);
         }
 
         // ==================== Event Handlers ==================== //
@@ -196,11 +196,33 @@ namespace Acklann.Scafman
         private void OnOpenTemplateDirectoryCommandInvoked(object sender, EventArgs e)
         {
             if (Directory.Exists(ConfigurationPage.UserTemplateDirectory)) System.Diagnostics.Process.Start(ConfigurationPage.UserTemplateDirectory);
+            else
+            {
+                DialogResult answer = MessageBox.Show(
+                    $"I could not find a template directory. Do you want to add one?",
+                    "Open Template Directory",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1);
+
+                if (answer == DialogResult.OK) ShowOptionPage(typeof(ConfigurationPage));
+            }
         }
 
         private void OnOpenItemGroupConfigurationFileCommandInvoked(object sender, EventArgs e)
         {
             if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath)) VsShellUtilities.OpenDocument(this, ConfigurationPage.UserItemGroupConfigurationFilePath);
+            else
+            {
+                DialogResult answer = MessageBox.Show(
+                    $"I could not find a configuration file. Do you want to add one?",
+                    "Open Template Directory",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1);
+
+                if (answer == DialogResult.OK) ShowOptionPage(typeof(ConfigurationPage));
+            }
         }
 
         private void OnGotoConfigruationPageCommandInvoked(object sender, EventArgs e)

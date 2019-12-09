@@ -3,20 +3,6 @@ using System.Collections.Generic;
 
 namespace Acklann.Scafman
 {
-    public readonly struct IntellisenseItem
-    {
-        public IntellisenseItem(string title, string description, string text)
-        {
-            Title = title;
-            FullText = text;
-            Description = description;
-        }
-
-        public readonly string Title, Description, FullText;
-
-        public override string ToString() => $"{Title}: {Description}";
-    }
-
     public class Intellisense
     {
         internal const int DEFAULT_LIMIT = 3;

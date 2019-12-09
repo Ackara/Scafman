@@ -20,8 +20,7 @@
       <Menu type="Menu" guid="CmdSet" id="MainMenuId" priority="1">
         <Parent guid="CmdSet" id="VSMenuGroup" />
         <Strings>
-          <MenuText>Scafman</MenuText>
-          <ButtonText>Scafman</ButtonText>
+          <ButtonText>Template Manager</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -34,6 +33,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Add New Item(s)</ButtonText>
+          <CommandName>AddItemFromTemplate</CommandName>
         </Strings>
       </Button>
 

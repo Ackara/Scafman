@@ -15,9 +15,9 @@
         Top="{Binding Top, Mode=TwoWay}"
         mc:Ignorable="d">
     <d:Window.DataContext>
-        <vm:FilenamePromptViewModel CurrenntDirectory="C:\Users\John\Projects\Foo"
-                                    UserInput="Build\tasks.psake.ps1"
+        <vm:FilenamePromptViewModel UserInput="Build\tasks.psake.ps1"
                                     HasValidInput="False"
+                                    CurrentDirectory="/users/john/projects/foo"
                                     Message="The file already exists" />
     </d:Window.DataContext>
 
@@ -57,7 +57,7 @@
                    Grid.ColumnSpan="2">
             <Run Text="Location:" />
 
-            <Run Text="{Binding CurrenntDirectory}" />
+            <Run Text="{Binding CurrentDirectory}" />
         </TextBlock>
 
         <Viewbox Visibility="{Binding HasValidInput, Converter={StaticResource VisibilityConverter}, ConverterParameter=true}"
