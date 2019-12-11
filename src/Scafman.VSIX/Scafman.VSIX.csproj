@@ -1,10 +1,7 @@
-
-
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-
     <Title>Scafman</Title>
     <Description>A file-based template manager.</Description>
     <Version>0.0.33</Version>
@@ -75,7 +72,8 @@
     <Compile Include="Models\CommandPromptViewModel.cs" />
     <Compile Include="Models\FilenamePromptViewModel.cs" />
     <Compile Include="Models\PromptBase.cs" />
-    <Compile Include="Models\SearchItem.cs" />
+    <Compile Include="Models\SearchContext.cs" />
+    <Compile Include="Models\SearchResult.cs" />
     <Compile Include="Metadata.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

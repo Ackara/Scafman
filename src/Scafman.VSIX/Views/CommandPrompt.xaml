@@ -18,20 +18,20 @@
                                    Location="C:\Users\David\Projects\Powerbar\source\Powerbar.VSIX"
                                    Width="500">
             <vm:CommandPromptViewModel.Options>
-                <vm:SearchItem Title="build"
-                               ToolTip="build.ps1 | task.psake.ps1"
-                               IsSelected="False"
-                               Command="" />
+                <vm:SearchResult Title="build"
+                                 ToolTip="build.ps1 | task.psake.ps1"
+                                 IsSelected="False"
+                                 Command="" />
 
-                <vm:SearchItem Title="css"
-                               ToolTip="_layout.scss | _reset.scss"
-                               IsSelected="True"
-                               Command="" />
+                <vm:SearchResult Title="css"
+                                 ToolTip="_layout.scss | _reset.scss"
+                                 IsSelected="True"
+                                 Command="" />
 
-                <vm:SearchItem Title="long"
-                               ToolTip="_layout.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss"
-                               IsSelected="False"
-                               Command="" />
+                <vm:SearchResult Title="long"
+                                 ToolTip="_layout.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss | _reset.scss"
+                                 IsSelected="False"
+                                 Command="" />
             </vm:CommandPromptViewModel.Options>
         </vm:CommandPromptViewModel>
     </d:Window.DataContext>
@@ -44,7 +44,7 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Effect>
-        <DropShadowEffect/>
+        <DropShadowEffect />
     </Window.Effect>
 
     <Grid>
@@ -90,7 +90,7 @@
                   Grid.Row="3"
                   Grid.ColumnSpan="2">
             <ListView.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm:SearchItem}">
+                <DataTemplate DataType="{x:Type vm:SearchResult}">
                     <Border Style="{StaticResource ListItemPanel}">
                         <StackPanel Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},Path=ActualWidth}">
                             <TextBlock Text="{Binding Title}"

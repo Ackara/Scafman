@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Acklann.Scafman.Models
 {
-    public class SearchItem : INotifyPropertyChanged
+    public class SearchResult : INotifyPropertyChanged
     {
         public string Title
         {
@@ -47,9 +47,9 @@ namespace Acklann.Scafman.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public static SearchItem CreateFrom(IntellisenseItem item)
+        public static SearchResult CreateFrom(IntellisenseItem item)
         {
-            return new SearchItem
+            return new SearchResult
             {
                 _title = item.Title,
                 _command = item.FullText,

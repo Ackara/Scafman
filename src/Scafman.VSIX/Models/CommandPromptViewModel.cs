@@ -74,7 +74,7 @@ namespace Acklann.Scafman.Models
         }
 
         [XmlIgnore]
-        public SearchItem SelectedItem
+        public SearchResult SelectedItem
         {
             get
             {
@@ -86,7 +86,7 @@ namespace Acklann.Scafman.Models
         }
 
         [XmlIgnore]
-        public ObservableCollection<SearchItem> Options
+        public ObservableCollection<SearchResult> Options
         {
             get => _options;
         }
@@ -98,24 +98,12 @@ namespace Acklann.Scafman.Models
 
         public static Task<CommandPromptViewModel> RestoreAsync() => Task.Run(() => Restore());
 
-        public void UpdateIntellisense(string input)
+        public void Reset()
         {
-            if (string.IsNullOrEmpty(input))
-            {
-                _intellisenseActivated = false;
-                return;
-            }
-
-            if (_intellisenseActivated) UpdateIntelliList(Intellisense.GetOptions(input, _groups, LIMIT));
-            if (_options.Count > 0) SelectedIndex = 0;
-        }
-
-        public void CompleteCommand(string input)
-        {
-            if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
-            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
-
+            _groups = null;
             Options.Clear();
+            UserInput = string.Empty;
+            _intellisenseActivated = false;
         }
 
         public void MoveUp()
@@ -128,12 +116,45 @@ namespace Acklann.Scafman.Models
             if (_selectedIndex < (_options.Count - 1)) SelectedIndex++;
         }
 
-        public void Reset()
+        public void ChangeContext(SearchContext context)
         {
-            _groups = null;
+            switch (_context = context)
+            {
+                case SearchContext.None:
+                    break;
+
+                case SearchContext.ItemGroup:
+                    break;
+
+                case SearchContext.Template:
+                    break;
+
+                case SearchContext.NuGet:
+                    break;
+
+                case SearchContext.NPM:
+                    break;
+            }
+        }
+
+        public void UpdateIntellisense(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                _intellisenseActivated = false;
+                return;
+            }
+
+            if (_intellisenseActivated) UpdateIntelliList(Intellisense.GetItemGroups(input, _groups, LIMIT));
+            if (_options.Count > 0) SelectedIndex = 0;
+        }
+
+        public void CompleteCommand(string input)
+        {
+            if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
+            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
+
             Options.Clear();
-            UserInput = string.Empty;
-            _intellisenseActivated = false;
         }
 
         public void ShowIntellisense() => SetIntellisense(true);
@@ -159,7 +180,7 @@ namespace Acklann.Scafman.Models
             for (int i = 0; i < items.Length; i++)
             {
                 if (i < (n - 1)) _options[i].Copy(items[i]);
-                else _options.Add(SearchItem.CreateFrom(items[i]));
+                else _options.Add(SearchResult.CreateFrom(items[i]));
             }
 
             while (items.Length < _options.Count) Options.RemoveAt(_options.Count - 1);
@@ -167,11 +188,12 @@ namespace Acklann.Scafman.Models
 
         #region Backing Variables
 
-        private readonly ObservableCollection<SearchItem> _options = new ObservableCollection<SearchItem>();
+        private readonly ObservableCollection<SearchResult> _options = new ObservableCollection<SearchResult>();
 
-        private volatile ItemGroup[] _groups;
-        private bool _intellisenseActivated;
         private int _selectedIndex;
+        private SearchContext _context;
+        private bool _intellisenseActivated;
+        private volatile ItemGroup[] _groups;
         private string _userInput = string.Empty, _location = string.Empty, _project = string.Empty;
 
         private static bool CheckIfEndsWithExtension(string path)

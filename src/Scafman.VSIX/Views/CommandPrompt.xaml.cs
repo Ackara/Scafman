@@ -25,7 +25,7 @@ namespace Acklann.Scafman.Views
 
         private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
-            //System.Diagnostics.Debug.WriteLine($"{nameof(Templata)} | pressed: {e.Key}, text: {Inputbox.Text}");
+            System.Diagnostics.Debug.WriteLine($">> pressed: {e.Key}, text: {Inputbox.Text}");
 
             switch (e.Key)
             {
@@ -34,11 +34,26 @@ namespace Acklann.Scafman.Views
                     break;
 
                 case Key.D2:// '@' symbol
-                    if (_shiftKey?.IsDown ?? false) _model.ShowIntellisense();
+                    if (_shiftKey?.IsDown ?? false)
+                    {
+                        _model.ShowIntellisense();
+                        _model.ChangeContext(SearchContext.ItemGroup);
+                    }
                     break;
 
+                case Key.OemComma: // ',' comma
                 case Key.OemSemicolon: // ')' key
                     _model.HideIntellisense();
+                    _model.ChangeContext(SearchContext.Template);
+                    break;
+
+                case Key.D0: // ')' close paren
+                    if (_shiftKey?.IsDown ?? false) _model.HideIntellisense();
+                    break;
+
+                case Key.Tab:
+                    _model.CompleteCommand(Inputbox.Text ?? _model.UserInput);
+                    Inputbox.CaretIndex = Inputbox.Text.Length;
                     break;
 
                 case Key.Up:
@@ -49,11 +64,6 @@ namespace Acklann.Scafman.Views
                     _model.MoveDown();
                     break;
 
-                case Key.Tab:
-                    _model.CompleteCommand(Inputbox.Text ?? _model.UserInput);
-                    Inputbox.CaretIndex = Inputbox.Text.Length;
-                    break;
-
                 case Key.Escape:
                     Close();
                     break;
@@ -61,14 +71,6 @@ namespace Acklann.Scafman.Views
                 case Key.Enter:
                     DialogResult = true;
                     Close();
-                    break;
-
-                case Key.D0:
-                    if (_shiftKey?.IsDown ?? false) _model.HideIntellisense();
-                    break;
-
-                case Key.OemComma:
-                    _model.HideIntellisense();
                     break;
             }
         }

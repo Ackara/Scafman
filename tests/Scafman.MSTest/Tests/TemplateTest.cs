@@ -10,6 +10,18 @@ namespace Acklann.Scafman.Tests
     [TestClass]
     public class TemplateTest
     {
+        [TestMethod]
+        public void Can_fetch_template_names()
+        {
+            // Act
+            var results = Template.GetNames(SampleFactory.DirectoryName);
+
+            // Assert
+            results.ShouldNotBeEmpty();
+            results.Length.ShouldBeGreaterThanOrEqualTo(4);
+            results.ShouldAllBe(x => !x.Contains(',') && !x.Contains(';') && !x.Contains('~'));
+        }
+
         [DataTestMethod]
         [DataRow("", null)]
         [DataRow(null, null)]

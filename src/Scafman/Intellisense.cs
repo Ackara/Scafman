@@ -7,7 +7,33 @@ namespace Acklann.Scafman
     {
         internal const int DEFAULT_LIMIT = 3;
 
-        public static IntellisenseItem[] GetOptions(string input, in ItemGroup[] options, int take = DEFAULT_LIMIT)
+        public static IntellisenseItem[] GetTemplates(string input, string[] templates, int take = DEFAULT_LIMIT)
+        {
+            if (string.IsNullOrEmpty(input) || templates == null || templates.Length < 1) return new IntellisenseItem[0];
+
+            string item, keyword;
+            var matches = new List<IntellisenseItem>(take);
+            int index = (input.LastIndexOf(Template.Separators) + 1);
+
+            keyword = input.Substring(index);
+
+            for (int i = 0; i < templates.Length; i++)
+                if (!string.IsNullOrEmpty(item = templates[i]))
+                    if (item.StartsWith(keyword, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        matches.Add(new IntellisenseItem(
+                            item,
+                            null,
+                            string.Concat(input.Substring(0, index), item)
+                            ));
+
+                        if (matches.Count >= take) break;
+                    }
+
+            return matches.ToArray();
+        }
+
+        public static IntellisenseItem[] GetItemGroups(string input, in ItemGroup[] options, int take = DEFAULT_LIMIT)
         {
             if (string.IsNullOrEmpty(input) || options == null || options.Length < 1) return new IntellisenseItem[0];
 
@@ -35,9 +61,9 @@ namespace Acklann.Scafman
             return results;
         }
 
-        public static IntellisenseItem[] GetOptions(string input, string configurationFile, int take = DEFAULT_LIMIT)
+        public static IntellisenseItem[] GetItemGroups(string input, string configurationFile, int take = DEFAULT_LIMIT)
         {
-            return GetOptions(input, ItemGroup.ReadFile(configurationFile), take);
+            return GetItemGroups(input, ItemGroup.ReadFile(configurationFile), take);
         }
     }
 }

@@ -24,5 +24,33 @@ namespace Acklann.Scafman
             GetFullPaths(context, itemname, out string path, out _);
             return path;
         }
+
+        public static bool Contains(this string text, char c)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (char.Equals(char.ToUpperInvariant(text[i]), char.ToUpperInvariant(c))) return true;
+            }
+
+            return false;
+        }
+
+        public static int LastIndexOf(this string text, params char[] characters)
+        {
+            if (string.IsNullOrEmpty(text)) return -1;
+
+            int index = -1;
+            for (int x = 0; x < text.Length; x++)
+                for (int y = 0; y < characters.Length; y++)
+                    if (text[x] == characters[y])
+                    {
+                        index = x;
+                        break;
+                    }
+
+            return index;
+        }
     }
 }

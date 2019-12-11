@@ -9,7 +9,39 @@ namespace Acklann.Scafman
 {
     public class Template
     {
-        private const char separator = ';';
+        internal const char separator = ';';
+
+        internal static readonly char[] Separators = new char[] { separator, ',' };
+
+        public static string[] GetNames(params string[] templateDirectories)
+        {
+            if (templateDirectories == null || templateDirectories.Length < 1) return new string[0];
+
+            string folder;
+            string[] names;
+            var results = new Stack<string>();
+
+            for (int i = 0; i < templateDirectories.Length; i++)
+            {
+                folder = templateDirectories[i];
+                if (Directory.Exists(folder))
+                {
+                    foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+                    {
+                        names = Path.GetFileName(file).Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+                        for (int n = 0; n < names.Length; n++)
+                        {
+                            if (!names[0].Contains('~'))
+                            {
+                                results.Push(names[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return results.ToArray();
+        }
 
         public static string[] Split(string fileList)
         {
@@ -18,7 +50,7 @@ namespace Acklann.Scafman
             Group group; string input = "";
             var result = new List<string>();
             var pattern = new Regex(@"\((?<item>[^\)]+)\)", RegexOptions.IgnoreCase);
-            string[] list = fileList.Split(new char[] { separator, ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] list = fileList.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < list.Length; i++)
             {
@@ -263,12 +295,12 @@ namespace Acklann.Scafman
             for (int i = 0; i < templateFiles.Length; i++)
             {
                 // A template file may contain multiple names. So we have to extract those names/aliases.
-                templateAliases = Path.GetFileName(templateFiles[i]).Split(new char[] { separator, ',' }, StringSplitOptions.RemoveEmptyEntries);
+                templateAliases = Path.GetFileName(templateFiles[i]).Split(Separators, StringSplitOptions.RemoveEmptyEntries);
 
                 for (int n = 0; n < templateAliases.Length; n++)
                 {
                     name = templateAliases[n];
-                    if (name.Contains("~" /* = wild-card(*) */))
+                    if (name.Contains('~' /* = wild-card(*) */))
                     {
                         // To get the best match. We will favor the match with the most characters in its name. Why?
                         // The more characters you match, the more specific.

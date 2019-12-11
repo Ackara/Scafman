@@ -8,6 +8,25 @@ namespace Acklann.Scafman.Tests
     [TestClass]
     public class IntellisenseTest
     {
+        [DataRow("", null)]
+        [DataRow(null, null)]
+        [DataRow("sym", "symbol.cst")]
+        [DataRow("s", "script.ts,symbol.cst")]
+        [DataRow("@(build);SYM", "@(build);symbol.cst")]
+        [DataTestMethod]
+        public void Can_fetch_template_options(string input, string expected)
+        {
+            // Arrange
+            var templates = Template.GetNames(SampleFactory.DirectoryName);
+            var expectedResults = (string.IsNullOrEmpty(expected) ? new string[0] : expected.Split(','));
+
+            // Act
+            var results = Intellisense.GetTemplates(input, templates).Select(x => x.FullText).ToArray();
+
+            // Assert
+            results.ShouldBe(expectedResults, ignoreOrder: true);
+        }
+
         [DataTestMethod]
         [DataRow("", "")]
         [DataRow(null, "")]
@@ -19,7 +38,7 @@ namespace Acklann.Scafman.Tests
             var sampleFile = SampleFactory.GetFile("itemGroups.json").FullName;
 
             // Act
-            var results = Intellisense.GetOptions(input, sampleFile).Select(x => x.Title).ToArray();
+            var results = Intellisense.GetItemGroups(input, sampleFile).Select(x => x.Title).ToArray();
             var expectedResults = expected.Split(new char[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
 
             // Assert
@@ -36,7 +55,7 @@ namespace Acklann.Scafman.Tests
             var sampleFile = SampleFactory.GetFile("itemGroups.json").FullName;
 
             // Act
-            var results = Intellisense.GetOptions(input, sampleFile).First();
+            var results = Intellisense.GetItemGroups(input, sampleFile).First();
 
             // Assert
             results.FullText.ShouldBe(expected);
