@@ -15,7 +15,7 @@ namespace Acklann.Scafman
             var matches = new List<IntellisenseItem>(take);
             int index = (input.LastIndexOf(Template.Separators) + 1);
 
-            keyword = input.Substring(index);
+            keyword = input.Substring(index).TrimStart('\\', '/');
 
             for (int i = 0; i < templates.Length; i++)
                 if (!string.IsNullOrEmpty(item = templates[i]))

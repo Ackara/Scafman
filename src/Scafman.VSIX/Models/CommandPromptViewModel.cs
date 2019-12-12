@@ -18,7 +18,6 @@ namespace Acklann.Scafman.Models
         }
 
         public const int LIMIT = 5;
-        public const int DEFAULT_CAPACITY = 16;
 
         [XmlIgnore]
         public string UserInput
@@ -78,8 +77,8 @@ namespace Acklann.Scafman.Models
         {
             get
             {
-                if (_selectedIndex > -1 && _selectedIndex < _options.Count && _options.Count > 0)
-                    return _options[_selectedIndex];
+                if (_selectedIndex > -1 && _selectedIndex < _searchItems.Count && _searchItems.Count > 0)
+                    return _searchItems[_selectedIndex];
                 else
                     return null;
             }
@@ -88,7 +87,7 @@ namespace Acklann.Scafman.Models
         [XmlIgnore]
         public ObservableCollection<SearchResult> Options
         {
-            get => _options;
+            get => _searchItems;
         }
 
         public static CommandPromptViewModel Restore(string stateFilePath = default)
@@ -100,10 +99,19 @@ namespace Acklann.Scafman.Models
 
         public void Reset()
         {
-            _groups = null;
             Options.Clear();
             UserInput = string.Empty;
-            _intellisenseActivated = false;
+            ChangeContext(SearchContext.Template);
+
+            Task.Run(() => { _templates = Template.GetNames(ConfigurationPage.UserTemplateDirectories); });
+
+            if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath))
+                Task.Run(() =>
+                {
+                    try { _itemGroups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupConfigurationFilePath); }
+                    catch (System.Runtime.Serialization.SerializationException) { }
+                    catch (IOException) { }
+                });
         }
 
         public void MoveUp()
@@ -113,87 +121,82 @@ namespace Acklann.Scafman.Models
 
         public void MoveDown()
         {
-            if (_selectedIndex < (_options.Count - 1)) SelectedIndex++;
+            if (_selectedIndex < (_searchItems.Count - 1)) SelectedIndex++;
         }
 
         public void ChangeContext(SearchContext context)
         {
-            switch (_context = context)
-            {
-                case SearchContext.None:
-                    break;
-
-                case SearchContext.ItemGroup:
-                    break;
-
-                case SearchContext.Template:
-                    break;
-
-                case SearchContext.NuGet:
-                    break;
-
-                case SearchContext.NPM:
-                    break;
-            }
+            _context = context;
+            System.Diagnostics.Debug.WriteLine($">> {nameof(ChangeContext)}: {context}");
         }
 
         public void UpdateIntellisense(string input)
         {
             if (string.IsNullOrEmpty(input))
             {
-                _intellisenseActivated = false;
-                return;
+                Options.Clear();
             }
+            else switch (_context)
+                {
+                    case SearchContext.ItemGroup:
+                        UpdateIntelliList(Intellisense.GetItemGroups(input, _itemGroups, LIMIT));
+                        break;
 
-            if (_intellisenseActivated) UpdateIntelliList(Intellisense.GetItemGroups(input, _groups, LIMIT));
-            if (_options.Count > 0) SelectedIndex = 0;
+                    case SearchContext.Template:
+                        UpdateIntelliList(Intellisense.GetTemplates(input, _templates, LIMIT));
+                        break;
+                }
+
+            if (_searchItems.Count > 0) SelectedIndex = 0;
         }
 
         public void CompleteCommand(string input)
         {
-            if (_intellisenseActivated) { if (SelectedItem != null) UserInput = SelectedItem.Command; }
-            else UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
+            if (!string.IsNullOrEmpty(SelectedItem?.Command))
+            {
+                UserInput = SelectedItem.Command;
+            }
+            else
+            {
+                UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
+            }
 
             Options.Clear();
         }
 
-        public void ShowIntellisense() => SetIntellisense(true);
-
-        public void HideIntellisense() => SetIntellisense(false);
-
-        private void SetIntellisense(bool on)
-        {
-            if (on && File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath)) Task.Run(() =>
-            {
-                try { _groups = ItemGroup.ReadFile(ConfigurationPage.UserItemGroupConfigurationFilePath); }
-                catch (System.Runtime.Serialization.SerializationException) { }
-                catch (IOException) { }
-            });
-
-            _intellisenseActivated = on;
-            System.Diagnostics.Debug.WriteLine($"{nameof(Scafman)} | intellisense: {_intellisenseActivated}");
-        }
-
         private void UpdateIntelliList(IntellisenseItem[] items)
         {
-            int n = _options.Count;
+            /// NOTE: To maintain performances we are overwritting the existing items within list
+            /// when necessary and then trimming the excess items.
+
+            // Overwrite
+
+            int sidx = _searchItems.Count - 1;
             for (int i = 0; i < items.Length; i++)
             {
-                if (i < (n - 1)) _options[i].Copy(items[i]);
-                else _options.Add(SearchResult.CreateFrom(items[i]));
+                if (i <= sidx) _searchItems[i].Copy(items[i]);
+                else _searchItems.Add(SearchResult.CreateFrom(items[i]));
             }
 
-            while (items.Length < _options.Count) Options.RemoveAt(_options.Count - 1);
+            // Trim
+
+            //if (_searchItems.Count > items.Length)
+            for (int i = items.Length; i < _searchItems.Count; i++)
+            {
+                Options.RemoveAt(i--);
+            }
+
+            //while (items.Length < _searchItems.Count) Options.RemoveAt(_searchItems.Count - 1);
         }
 
         #region Backing Variables
 
-        private readonly ObservableCollection<SearchResult> _options = new ObservableCollection<SearchResult>();
+        private readonly ObservableCollection<SearchResult> _searchItems = new ObservableCollection<SearchResult>();
 
         private int _selectedIndex;
         private SearchContext _context;
-        private bool _intellisenseActivated;
-        private volatile ItemGroup[] _groups;
+        private volatile string[] _templates;
+        private volatile ItemGroup[] _itemGroups;
         private string _userInput = string.Empty, _location = string.Empty, _project = string.Empty;
 
         private static bool CheckIfEndsWithExtension(string path)

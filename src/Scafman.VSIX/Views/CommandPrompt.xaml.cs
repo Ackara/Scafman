@@ -30,25 +30,23 @@ namespace Acklann.Scafman.Views
             switch (e.Key)
             {
                 default:
-                    _model.UpdateIntellisense(Inputbox.Text ?? _model.UserInput);
+                    _model.UpdateIntellisense(Inputbox.Text);
                     break;
 
                 case Key.D2:// '@' symbol
                     if (_shiftKey?.IsDown ?? false)
                     {
-                        _model.ShowIntellisense();
                         _model.ChangeContext(SearchContext.ItemGroup);
                     }
                     break;
 
                 case Key.OemComma: // ',' comma
-                case Key.OemSemicolon: // ')' key
-                    _model.HideIntellisense();
+                case Key.OemSemicolon: // ';' semi-colon
                     _model.ChangeContext(SearchContext.Template);
                     break;
 
                 case Key.D0: // ')' close paren
-                    if (_shiftKey?.IsDown ?? false) _model.HideIntellisense();
+                    if (_shiftKey?.IsDown ?? false) _model.ChangeContext(SearchContext.None);
                     break;
 
                 case Key.Tab:
