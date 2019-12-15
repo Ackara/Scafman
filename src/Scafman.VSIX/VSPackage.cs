@@ -43,11 +43,12 @@ namespace Acklann.Scafman
             }
         }
 
-        private string GetFilenameFromUser(string cwd, string defaultName, string title = "Enter file name")
+        private string GetFilenameFromUser(string title, string defaultName, string cwd = default)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            if (string.IsNullOrEmpty(cwd)) cwd = ConfigurationPage.UserTemplateDirectory;
 
-            _filePrompt.Initialize(cwd, defaultName);
+            _filePrompt.Initialize(cwd, Utilities.GuessTemplatePath(defaultName, cwd));
             var dialog = new Views.FilenamePrompt(_filePrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
             bool gotValue = (dialog.ShowDialog() ?? false);
@@ -62,7 +63,8 @@ namespace Acklann.Scafman
 
             _commandPrompt.Reset();
             _commandPrompt.Location = context.CurrentDirectory;
-            _commandPrompt.Project = context.ProjectFilePath;
+            _commandPrompt.Project = context.ProjectDirectory;
+            _commandPrompt.Solution = context.SolutionDirectory;
 
             var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };
             dialog.Title = LocalizedString.GetWindowTitle(title);
@@ -125,10 +127,10 @@ namespace Acklann.Scafman
         private void OnCompareActiveDocumentWithTemplateCommandInvoked(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            const string title = "Compare Active Document with Template";
 
             string documentPath = vs.ActiveDocument?.FullName;
             if (string.IsNullOrEmpty(documentPath)) return;
+            string title = $"Compare {Path.GetFileName(documentPath)} with Template";
 
             string templateFile = Template.Find(documentPath, ConfigurationPage.UserTemplateDirectories);
 
@@ -141,7 +143,7 @@ namespace Acklann.Scafman
 
                 if (answer == DialogResult.Yes)
                 {
-                    templateFile = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath), title);
+                    templateFile = GetFilenameFromUser(title, documentPath);
                     if (string.IsNullOrEmpty(templateFile)) return;
 
                     string folder = Path.GetDirectoryName(templateFile);
@@ -178,7 +180,7 @@ namespace Acklann.Scafman
                 return;
             }
 
-            string newTemplateFilePath = GetFilenameFromUser(ConfigurationPage.UserTemplateDirectory, Path.GetFileName(documentPath), title);
+            string newTemplateFilePath = GetFilenameFromUser(title, documentPath);
             if (string.IsNullOrEmpty(newTemplateFilePath)) return;
 
             string folder = Path.GetDirectoryName(newTemplateFilePath);

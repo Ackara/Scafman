@@ -7,28 +7,36 @@ namespace Acklann.Scafman
     {
         internal const int DEFAULT_LIMIT = 3;
 
-        public static IntellisenseItem[] GetTemplates(string input, string[] templates, int take = DEFAULT_LIMIT)
+        public static IntellisenseItem[] GetTemplates(string input, string[] templatePaths, int take = DEFAULT_LIMIT)
         {
-            if (string.IsNullOrEmpty(input) || templates == null || templates.Length < 1) return new IntellisenseItem[0];
+            if (string.IsNullOrEmpty(input) || templatePaths == null || templatePaths.Length < 1) return new IntellisenseItem[0];
 
-            string item, keyword;
+            string[] aliases;
+            string alias, keyword;
             var matches = new List<IntellisenseItem>(take);
             int index = (input.LastIndexOf(Template.Separators) + 1);
 
-            keyword = input.Substring(index).TrimStart('\\', '/');
+            keyword = input.Substring(index).TrimStart(Command.GetFolderOperators());
+            if (string.IsNullOrEmpty(keyword)) return new IntellisenseItem[0];
 
-            for (int i = 0; i < templates.Length; i++)
-                if (!string.IsNullOrEmpty(item = templates[i]))
-                    if (item.StartsWith(keyword, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        matches.Add(new IntellisenseItem(
-                            item,
-                            null,
-                            string.Concat(input.Substring(0, index), item)
-                            ));
+            for (int x = 0; x < templatePaths.Length; x++)
+            {
+                aliases = Template.GetAliases(templatePaths[x]);
+                for (int y = 0; y < aliases.Length; y++)
+                {
+                    if (!string.IsNullOrEmpty(alias = aliases[y]))
+                        if (alias.StartsWith(keyword, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            matches.Add(new IntellisenseItem(
+                                alias,
+                                templatePaths[x],
+                                string.Concat(input.Substring(0, index), alias)
+                                ));
 
-                        if (matches.Count >= take) break;
-                    }
+                            if (matches.Count >= take) return matches.ToArray();
+                        }
+                }
+            }
 
             return matches.ToArray();
         }

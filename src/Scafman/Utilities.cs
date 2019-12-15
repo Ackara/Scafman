@@ -1,5 +1,7 @@
 ﻿using Acklann.GlobN;
 using System;
+using System.IO;
+using System.Linq;
 
 namespace Acklann.Scafman
 {
@@ -23,6 +25,26 @@ namespace Acklann.Scafman
         {
             GetFullPaths(context, itemname, out string path, out _);
             return path;
+        }
+
+        public static string GuessTemplatePath(string fileName, string templateDirectory)
+        {
+            if (string.IsNullOrEmpty(fileName)) return fileName;
+
+            if (Directory.Exists(templateDirectory))
+            {
+                string match = Directory.EnumerateFiles(templateDirectory, $"*{Path.GetExtension(fileName)}", SearchOption.AllDirectories).FirstOrDefault();
+                if (!string.IsNullOrEmpty(match))
+                {
+                    return Path.Combine(
+                        Path.GetDirectoryName(
+                            match.Replace(templateDirectory, string.Empty).TrimStart('\\', '/')),
+                        Path.GetFileName(fileName)
+                        );
+                }
+            }
+
+            return Path.GetFileName(fileName);
         }
 
         public static bool Contains(this string text, char c)
@@ -51,6 +73,12 @@ namespace Acklann.Scafman
                     }
 
             return index;
+        }
+
+        public static string GetLastSegment(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return default;
+            return text.Substring(LastIndexOf(text, Template.Separators) + 1);
         }
     }
 }

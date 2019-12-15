@@ -11,15 +11,15 @@ namespace Acklann.Scafman.Tests
     public class TemplateTest
     {
         [TestMethod]
-        public void Can_fetch_template_names()
+        public void Can_fetch_template_files()
         {
             // Act
-            var results = Template.GetNames(SampleFactory.DirectoryName);
+            var results = Template.GetFiles(SampleFactory.DirectoryName);
 
             // Assert
             results.ShouldNotBeEmpty();
+            results.ShouldAllBe(x => File.Exists(x));
             results.Length.ShouldBeGreaterThanOrEqualTo(4);
-            results.ShouldAllBe(x => !x.Contains(',') && !x.Contains(';') && !x.Contains('~'));
         }
 
         [DataTestMethod]
@@ -48,18 +48,38 @@ namespace Acklann.Scafman.Tests
             result.ShouldBe(template);
         }
 
-        [DataTestMethod]
-        [DataRow("bar", ".cs")]
-        [DataRow("/app/person", ".cs")]
-        public void Can_guess_file_extension(string path, string expectedExtension)
+        [TestMethod]
+        public void Can_guess_file_extension()
         {
-            string projectFile = Path.Combine(Path.GetTempPath(), "guess-ext", "app.csproj");
-            string folder = Path.GetDirectoryName(projectFile);
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            // Arrange
+            var cases = new (string, string)[]
+            {
+                ("package.json", ".cs"),
+                ("css/_layout.css", ".cs"),
+                ("css/_buttons.css", ".css"),
+            };
 
-            var result = Template.GuessFileExtension(projectFile, folder);
-            if (path == null) Assert.AreEqual(result, string.Empty);
-            else result.ShouldBe(expectedExtension);
+            string folder = Path.Combine(Path.GetTempPath(), "guess-ext");
+            if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
+            Directory.CreateDirectory(folder);
+
+            var proj = Path.Combine(folder, "app.csproj");
+            File.Create(proj).Dispose();
+
+            // Act
+            string file;
+            foreach ((string path, string expected) in cases)
+            {
+                file = Path.Combine(folder, path);
+                string tmp = Path.GetDirectoryName(file);
+                if (!Directory.Exists(tmp)) Directory.CreateDirectory(tmp);
+                File.Create(file).Dispose();
+
+                var result = Template.GuessFileExtension(tmp, proj);
+
+                // Assert
+                result.ShouldBe(expected, $"input: {path}");
+            }
         }
 
         [DataTestMethod]
@@ -168,6 +188,26 @@ namespace Acklann.Scafman.Tests
 
             result.ShouldBe(expected, message);
             if (result == false) message.ShouldNotBeNullOrEmpty();
+        }
+
+        [DataTestMethod]
+        [DataRow("", null)]
+        [DataRow(null, null)]
+        [DataRow("~kind.cs", null)]
+        [DataRow("readme.md", "readme.md")]
+        [DataRow("~kind.cs,symbol.cs", "symbol.cs")]
+        [DataRow("symbol.cs,~kind.cs", "symbol.cs")]
+        public void Can_get_template_aliases(string fileName, string expected)
+        {
+            // Arrange
+            var expectedResult = new string[0];
+            if (!string.IsNullOrEmpty(expected)) expectedResult = expected.Split(',', ';');
+
+            // Act
+            var result = Template.GetAliases(fileName);
+
+            // Assert
+            result.ShouldBe(expectedResult, ignoreOrder: true);
         }
 
         [DataTestMethod]

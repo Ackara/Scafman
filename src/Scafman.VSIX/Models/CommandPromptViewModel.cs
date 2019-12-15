@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Acklann.GlobN;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,6 +39,17 @@ namespace Acklann.Scafman.Models
             {
                 _project = value;
                 RaisePropertyChangedEvent(nameof(Project));
+            }
+        }
+
+        [XmlIgnore]
+        public string Solution
+        {
+            get => _solution;
+            set
+            {
+                _solution = value;
+                RaisePropertyChangedEvent(nameof(Solution));
             }
         }
 
@@ -103,7 +115,7 @@ namespace Acklann.Scafman.Models
             UserInput = string.Empty;
             ChangeContext(SearchContext.Template);
 
-            Task.Run(() => { _templates = Template.GetNames(ConfigurationPage.UserTemplateDirectories); });
+            Task.Run(() => { _templates = Template.GetFiles(ConfigurationPage.UserTemplateDirectories); });
 
             if (File.Exists(ConfigurationPage.UserItemGroupConfigurationFilePath))
                 Task.Run(() =>
@@ -132,20 +144,19 @@ namespace Acklann.Scafman.Models
 
         public void UpdateIntellisense(string input)
         {
-            if (string.IsNullOrEmpty(input))
-            {
-                Options.Clear();
-            }
-            else switch (_context)
-                {
-                    case SearchContext.ItemGroup:
-                        UpdateIntelliList(Intellisense.GetItemGroups(input, _itemGroups, LIMIT));
-                        break;
+            if (string.IsNullOrEmpty(input)) Options.Clear();
 
-                    case SearchContext.Template:
-                        UpdateIntelliList(Intellisense.GetTemplates(input, _templates, LIMIT));
-                        break;
-                }
+            switch (_context)
+            {
+                default:
+                case SearchContext.Template:
+                    UpdateIntelliList(Intellisense.GetTemplates(input, _templates, LIMIT));
+                    break;
+
+                case SearchContext.ItemGroup:
+                    UpdateIntelliList(Intellisense.GetItemGroups(input, _itemGroups, LIMIT));
+                    break;
+            }
 
             if (_searchItems.Count > 0) SelectedIndex = 0;
         }
@@ -156,9 +167,15 @@ namespace Acklann.Scafman.Models
             {
                 UserInput = SelectedItem.Command;
             }
-            else
+            else if (HasNoFlieExtension(input))
             {
-                UserInput = (CheckIfEndsWithExtension(input) ? input : (input + Template.GuessFileExtension(_project, _location)));
+                string lastItem = Utilities.GetLastSegment(input);
+                UserInput = string.Concat(
+                    input,
+                    Template.GuessFileExtension(
+                        Path.GetDirectoryName(lastItem.ExpandPath(GetLocation(lastItem))),
+                        _project)
+                    );
             }
 
             Options.Clear();
@@ -193,16 +210,30 @@ namespace Acklann.Scafman.Models
 
         private readonly ObservableCollection<SearchResult> _searchItems = new ObservableCollection<SearchResult>();
 
+        private readonly Regex _extPattern = new Regex(@"\.[a-z0-9]+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private int _selectedIndex;
         private SearchContext _context;
         private volatile string[] _templates;
         private volatile ItemGroup[] _itemGroups;
-        private string _userInput = string.Empty, _location = string.Empty, _project = string.Empty;
+        private string _userInput = string.Empty, _location = string.Empty, _project = string.Empty, _solution = string.Empty;
 
-        private static bool CheckIfEndsWithExtension(string path)
+        private bool HasNoFlieExtension(string input)
         {
-            if (string.IsNullOrEmpty(path)) return false;
-            else return Regex.IsMatch(path, @"\.[a-z0-9]+$", RegexOptions.IgnoreCase);
+            if (string.IsNullOrEmpty(input)) return false;
+            return _extPattern.IsMatch(input) == false;
+        }
+
+        private string GetLocation(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return _location;
+
+            if (input.StartsWith(@"\\") || input.StartsWith("//"))
+                return _solution;
+            else if (input.StartsWith(@"\") || input.StartsWith("/"))
+                return _project;
+            else
+                return _location;
         }
 
         #endregion Backing Variables

@@ -167,6 +167,7 @@ namespace Acklann.Scafman
         }
 
         // ==================== Misc ==================== //
+
         public static void LaunchDiffTool(this EnvDTE.DTE dte, string file1, string file2)
         {
             ThreadHelper.ThrowIfNotOnUIThread();

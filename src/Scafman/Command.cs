@@ -43,6 +43,8 @@
             }
         }
 
+        public static char[] GetFolderOperators() => new char[] { '\\', '/' };
+
         public override string ToString()
         {
             switch (Kind)

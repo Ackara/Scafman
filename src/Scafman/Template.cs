@@ -11,34 +11,40 @@ namespace Acklann.Scafman
     {
         internal const char separator = ';';
 
+        internal const char wildcard = '~';
+
         internal static readonly char[] Separators = new char[] { separator, ',' };
 
-        public static string[] GetNames(params string[] templateDirectories)
+        public static string[] GetAliases(string templatePath)
+        {
+            if (string.IsNullOrEmpty(templatePath)) return new string[0];
+
+            string[] names;
+            var results = new List<string>();
+
+            names = Path.GetFileName(templatePath).Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < names.Length; i++)
+                if (!names[i].Contains(wildcard))
+                {
+                    results.Add(names[i]);
+                }
+
+            return results.ToArray();
+        }
+
+        public static string[] GetFiles(params string[] templateDirectories)
         {
             if (templateDirectories == null || templateDirectories.Length < 1) return new string[0];
 
             string folder;
-            string[] names;
             var results = new Stack<string>();
 
             for (int i = 0; i < templateDirectories.Length; i++)
-            {
-                folder = templateDirectories[i];
-                if (Directory.Exists(folder))
-                {
+                if (Directory.Exists(folder = templateDirectories[i]))
                     foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
                     {
-                        names = Path.GetFileName(file).Split(Separators, StringSplitOptions.RemoveEmptyEntries);
-                        for (int n = 0; n < names.Length; n++)
-                        {
-                            if (!names[0].Contains('~'))
-                            {
-                                results.Push(names[i]);
-                            }
-                        }
+                        results.Push(file);
                     }
-                }
-            }
 
             return results.ToArray();
         }
@@ -110,20 +116,22 @@ namespace Acklann.Scafman
             return true;
         }
 
-        public static string GuessFileExtension(string projectFile, string currentWorkingDirectory)
+        public static string GuessFileExtension(string currentDirectory, string projectFile)
         {
-            if (Directory.Exists(currentWorkingDirectory))
+            if (Directory.Exists(currentDirectory))
             {
                 // We will look at the first (n) extensions within the directory, then pick one at random.
-                // The idea is that dominate file-type should be chosen due to high probability.
-                var extensions = (Directory.EnumerateFiles(currentWorkingDirectory).Select(x => Path.GetExtension(x))).Take(10).ToArray();
-                if (extensions.Length > 1) return extensions[new Random().Next(0, extensions.Length - 1)];
+                // The idea is that dominate file-type should be chosen due to it having the highest probability.
+                string result = default;
+                var extensions = (Directory.EnumerateFiles(currentDirectory).Select(x => Path.GetExtension(x))).Take(10).ToArray();
+                if (extensions.Length > 1) result = extensions[new Random().Next(0, extensions.Length)];
+
+                if (!string.IsNullOrEmpty(result) && !result.EndsWith("proj")) return result;
             }
 
-            if (string.IsNullOrEmpty(projectFile)) return string.Empty;
-            else
+            if (Path.HasExtension(projectFile))
             {
-                string extension = Path.GetExtension(projectFile).Replace("proj", string.Empty).ToLowerInvariant();
+                string extension = Path.GetExtension(projectFile).ToLowerInvariant().Replace("proj", string.Empty);
                 switch (extension)
                 {
                     case ".nj": return ".ts";
@@ -132,6 +140,8 @@ namespace Acklann.Scafman
                     default: return extension;
                 }
             }
+
+            return string.Empty;
         }
 
         public static string RemoveCaret(string content, out int position)
@@ -300,7 +310,7 @@ namespace Acklann.Scafman
                 for (int n = 0; n < templateAliases.Length; n++)
                 {
                     name = templateAliases[n];
-                    if (name.Contains('~' /* = wild-card(*) */))
+                    if (name.Contains(wildcard))
                     {
                         // To get the best match. We will favor the match with the most characters in its name. Why?
                         // The more characters you match, the more specific.

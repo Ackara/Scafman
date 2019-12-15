@@ -39,6 +39,7 @@
 
       <Button guid="CmdSet" id="CompareActiveDocumentWithTemplateCommandId">
         <Icon guid="ImageCatalogGuid" id="CompareFiles" />
+        <CommandFlag>TextChanges</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>

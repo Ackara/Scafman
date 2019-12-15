@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Acklann.Scafman.Tests
@@ -19,14 +20,15 @@ namespace Acklann.Scafman.Tests
         public void Can_fetch_template_options(string input, string expected)
         {
             // Arrange
-            var templates = Template.GetNames(SampleFactory.DirectoryName);
+            var templates = Directory.GetFiles(SampleFactory.DirectoryName);
             var expectedResults = (string.IsNullOrEmpty(expected) ? new string[0] : expected.Split(','));
 
             // Act
-            var results = Intellisense.GetTemplates(input, templates).Select(x => x.FullText).ToArray();
+            var results = Intellisense.GetTemplates(input, templates).ToArray();
 
             // Assert
-            results.ShouldBe(expectedResults, ignoreOrder: true);
+            (results.Select(x => x.FullText)).ShouldBe(expectedResults, ignoreOrder: true);
+            (results.Select(x => x.Description)).ShouldAllBe(x => !string.IsNullOrEmpty(x));
         }
 
         [DataTestMethod]

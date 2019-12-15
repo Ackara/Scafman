@@ -25,7 +25,7 @@ namespace Acklann.Scafman.Views
 
         private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($">> pressed: {e.Key}, text: {Inputbox.Text}");
+            //System.Diagnostics.Debug.WriteLine($">> pressed: {e.Key}, text: {Inputbox.Text}");
 
             switch (e.Key)
             {
@@ -45,8 +45,8 @@ namespace Acklann.Scafman.Views
                     _model.ChangeContext(SearchContext.Template);
                     break;
 
-                case Key.D0: // ')' close paren
-                    if (_shiftKey?.IsDown ?? false) _model.ChangeContext(SearchContext.None);
+                case Key.D0:
+                    if (_shiftKey?.IsDown ?? false) _model.ChangeContext(SearchContext.None);// ')' close paren
                     break;
 
                 case Key.Tab:
