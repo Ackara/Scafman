@@ -4,7 +4,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Title>Scafman</Title>
     <Description>A file-based template manager.</Description>
-    <Version>0.0.34</Version>
+    <Version>0.0.35</Version>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/Ackara/Scafman.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Ackara/Scafman</PackageProjectUrl>
@@ -15,7 +15,7 @@
     <Copyright>Copyright 2019 Ackara, All Rights Reserved.</Copyright>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
   
-<AssemblyVersion>0.0.34</AssemblyVersion>
+<AssemblyVersion>0.0.35</AssemblyVersion>
 </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
