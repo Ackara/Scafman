@@ -63,7 +63,7 @@ namespace Acklann.Scafman
 
             _commandPrompt.Reset();
             _commandPrompt.Location = context.CurrentDirectory;
-            _commandPrompt.Project = context.ProjectDirectory;
+            _commandPrompt.Project = context.ProjectFilePath;
             _commandPrompt.Solution = context.SolutionDirectory;
 
             var dialog = new Views.CommandPrompt(_commandPrompt) { Owner = (System.Windows.Window)HwndSource.FromHwnd(new IntPtr(vs.MainWindow.HWnd)).RootVisual };

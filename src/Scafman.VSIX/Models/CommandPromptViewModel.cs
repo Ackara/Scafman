@@ -231,7 +231,7 @@ namespace Acklann.Scafman.Models
             if (input.StartsWith(@"\\") || input.StartsWith("//"))
                 return _solution;
             else if (input.StartsWith(@"\") || input.StartsWith("/"))
-                return _project;
+                return Path.GetDirectoryName(_project);
             else
                 return _location;
         }

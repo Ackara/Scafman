@@ -314,7 +314,7 @@ namespace Acklann.Scafman
                     {
                         // To get the best match. We will favor the match with the most characters in its name. Why?
                         // The more characters you match, the more specific.
-                        var pattern = new Regex(name.Replace(".", "\\.").Replace("~", ".+"), RegexOptions.IgnoreCase);
+                        var pattern = new Regex(($"^{name}$").Replace(".", "\\.").Replace("~", ".+"), RegexOptions.IgnoreCase);
                         if (pattern.IsMatch(keywords) && name.Length > match.matchStrength)
                             match = (templateFiles[i], name.Length);
                     }
