@@ -4,7 +4,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Title>Scafman</Title>
     <Description>A file-based template manager.</Description>
-    <Version>0.0.35</Version>
+    <Version>0.0.36</Version>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/Ackara/Scafman.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Ackara/Scafman</PackageProjectUrl>
