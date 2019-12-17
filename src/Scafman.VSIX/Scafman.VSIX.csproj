@@ -14,8 +14,6 @@
     <Company>Ackara</Company>
     <Copyright>Copyright 2019 Ackara, All Rights Reserved.</Copyright>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
-  
-<AssemblyVersion>0.0.35</AssemblyVersion>
 </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>

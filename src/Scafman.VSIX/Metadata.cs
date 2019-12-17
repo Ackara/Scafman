@@ -6,7 +6,7 @@ namespace Acklann.Scafman
 	{
 		public const string Name = "Scafman";
 		
-		public const string Version = "0.0.24";
+		public const string Version = "0.0.36";
 
 		public class Package
 		{
