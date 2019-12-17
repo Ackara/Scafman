@@ -1,10 +1,10 @@
-﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Title>Scafman</Title>
     <Description>A file-based template manager.</Description>
-    <Version>0.0.33</Version>
+    <Version>0.0.34</Version>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/Ackara/Scafman.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Ackara/Scafman</PackageProjectUrl>
@@ -14,7 +14,9 @@
     <Company>Ackara</Company>
     <Copyright>Copyright 2019 Ackara, All Rights Reserved.</Copyright>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
-  </PropertyGroup>
+  
+<AssemblyVersion>0.0.34</AssemblyVersion>
+</PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -189,4 +191,6 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+
+
 </Project>
