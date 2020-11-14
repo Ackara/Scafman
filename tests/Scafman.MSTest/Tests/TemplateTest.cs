@@ -68,19 +68,17 @@ namespace Acklann.Scafman.Tests
             File.Create(proj).Dispose();
 
             // Act
-            string file;
-            foreach ((string path, string expected) in cases)
-            {
-                file = Path.Combine(folder, path);
-                string tmp = Path.GetDirectoryName(file);
-                if (!Directory.Exists(tmp)) Directory.CreateDirectory(tmp);
-                File.Create(file).Dispose();
+            var case1 = Template.GuessFileExtension(folder, proj);
 
-                var result = Template.GuessFileExtension(tmp, proj);
+            var file = Path.Combine(folder, "css/_layout.css");
+            folder = Path.GetDirectoryName(file);
+            Directory.CreateDirectory(folder);
+            File.Create(file).Dispose();
+            var case2 = Template.GuessFileExtension(folder, proj);
 
-                // Assert
-                result.ShouldBe(expected, $"input: {path}");
-            }
+            // Assert
+            case1.ShouldBe(".cs");
+            case2.ShouldBe(".css");
         }
 
         [DataTestMethod]

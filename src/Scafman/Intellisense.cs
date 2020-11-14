@@ -12,12 +12,18 @@ namespace Acklann.Scafman
             if (string.IsNullOrEmpty(input) || templatePaths == null || templatePaths.Length < 1) return new IntellisenseItem[0];
 
             string[] aliases;
-            string alias, keyword;
+            string alias, keyword, folderOperator = null;
             var matches = new List<IntellisenseItem>(take);
             int index = (input.LastIndexOf(Template.Separators) + 1);
 
             keyword = input.Substring(index).TrimStart(Command.GetFolderOperators());
             if (string.IsNullOrEmpty(keyword)) return new IntellisenseItem[0];
+
+            folderOperator = input.Substring(index);
+            folderOperator = (
+                folderOperator.StartsWith("\\") || folderOperator.StartsWith("/") ?
+                    folderOperator.Substring(0, (Utilities.LastIndexOf(folderOperator, '\\', '/') + 1))
+                    : null);
 
             for (int x = 0; x < templatePaths.Length; x++)
             {
@@ -30,7 +36,7 @@ namespace Acklann.Scafman
                             matches.Add(new IntellisenseItem(
                                 alias,
                                 templatePaths[x],
-                                string.Concat(input.Substring(0, index), alias)
+                                string.Concat(input.Substring(0, index), folderOperator, alias)
                                 ));
 
                             if (matches.Count >= take) return matches.ToArray();

@@ -124,7 +124,7 @@ namespace Acklann.Scafman
                 // The idea is that dominate file-type should be chosen due to it having the highest probability.
                 string result = default;
                 var extensions = (Directory.EnumerateFiles(currentDirectory).Select(x => Path.GetExtension(x))).Take(10).ToArray();
-                if (extensions.Length > 1) result = extensions[new Random().Next(0, extensions.Length)];
+                if (extensions.Length > 0) result = extensions[new Random().Next(0, extensions.Length)];
 
                 if (!string.IsNullOrEmpty(result) && !result.EndsWith("proj")) return result;
             }

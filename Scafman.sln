@@ -12,6 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".misc", ".misc", "{4F744B8E-DC48-4400-A674-1200FE40FC1F}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		commands.json = commands.json
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scafman.VSIX", "src\Scafman.VSIX\Scafman.VSIX.csproj", "{2E576633-5087-4923-8175-011323CB94E5}"

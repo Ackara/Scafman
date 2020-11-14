@@ -197,13 +197,10 @@ namespace Acklann.Scafman.Models
 
             // Trim
 
-            //if (_searchItems.Count > items.Length)
             for (int i = items.Length; i < _searchItems.Count; i++)
             {
                 Options.RemoveAt(i--);
             }
-
-            //while (items.Length < _searchItems.Count) Options.RemoveAt(_searchItems.Count - 1);
         }
 
         #region Backing Variables

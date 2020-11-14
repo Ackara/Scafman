@@ -13,8 +13,8 @@ namespace Acklann.Scafman.Tests
         [DataRow(null, null)]
         [DataRow("sym", "symbol.cst")]
         [DataRow("s", "script.ts,symbol.cst")]
-        [DataRow("//s", "script.ts,symbol.cst")]
-        [DataRow("\\s", "script.ts,symbol.cst")]
+        [DataRow("//s", "//script.ts,//symbol.cst")]
+        [DataRow("\\s", "\\script.ts,\\symbol.cst")]
         [DataRow("@(build);SYM", "@(build);symbol.cst")]
         [DataTestMethod]
         public void Can_fetch_template_options(string input, string expected)
