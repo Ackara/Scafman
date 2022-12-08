@@ -37,7 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="Acklann.GlobN" Version="2.1.7" />
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
 
